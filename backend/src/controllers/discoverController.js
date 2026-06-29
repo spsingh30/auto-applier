@@ -1,6 +1,8 @@
 // Job discovery — verified ATS boards se open jobs nikaal ke DB me daalta hai.
 const { discover } = require('../services/autoapply/discover');
 const applicationModel = require('../models/applicationModel');
+const profileModel = require('../models/profileModel');
+const { suggestKeywords } = require('../services/autoapply/keywords');
 const { BOARDS } = require('../services/autoapply/boards');
 
 // POST /api/discover
@@ -8,12 +10,13 @@ const { BOARDS } = require('../services/autoapply/boards');
 // Note: sab boards chalane me 1-2 min lag sakta hai (polite rate-limit). ats/query se chhota karo.
 async function run(req, res, next) {
   try {
-    const { ats, limitPerBoard, query } = req.body || {};
+    const { ats, limitPerBoard, query, queries } = req.body || {};
 
     const result = await discover({
       ats: Array.isArray(ats) ? ats : undefined,
       limitPerBoard: Number.isFinite(limitPerBoard) ? limitPerBoard : 15,
       query: typeof query === 'string' ? query : undefined,
+      queries: Array.isArray(queries) ? queries : undefined,
     });
 
     const { added, skipped } = await applicationModel.bulkCreateDiscovered(result.jobs);
@@ -38,4 +41,15 @@ function boards(req, res) {
   res.json({ ats: summary, total: Object.values(summary).reduce((a, b) => a + b, 0) });
 }
 
-module.exports = { run, boards };
+// GET /api/discover/keywords  -> latest resume se suggested job keywords
+async function keywords(req, res, next) {
+  try {
+    const profile = await profileModel.getLatest();
+    const list = await suggestKeywords(profile);
+    res.json({ keywords: list });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { run, boards, keywords };

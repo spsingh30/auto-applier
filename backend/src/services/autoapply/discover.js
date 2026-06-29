@@ -109,14 +109,18 @@ const FETCHERS = {
  * @param {object} opts
  * @param {string[]} [opts.ats]          - kaunse ATS (default: sab)
  * @param {number}   [opts.limitPerBoard]- har board se max jobs (default 15)
- * @param {string}   [opts.query]        - title me ye keyword ho to hi rakho (optional)
+ * @param {string}   [opts.query]        - title me ye keyword ho to hi rakho (optional, single)
+ * @param {string[]} [opts.queries]      - in me se KOI bhi keyword title me ho to rakho (optional, multi)
  * @param {function} [opts.onProgress]   - (info) => void  live log ke liye
  * @returns {Promise<{ jobs: object[], boardsHit: number, boardsFailed: number, errors: object[] }>}
  */
 async function discover(opts = {}) {
   const atsList = (opts.ats && opts.ats.length ? opts.ats : Object.keys(BOARDS)).filter((a) => FETCHERS[a]);
   const limitPerBoard = opts.limitPerBoard ?? 15;
-  const q = (opts.query || '').trim().toLowerCase();
+  // queries[] (multi) + query (single) dono ko ek lowercase keyword list me mila do.
+  const keywords = [...(opts.queries || []), opts.query]
+    .map((k) => (k || '').trim().toLowerCase())
+    .filter(Boolean);
   const onProgress = opts.onProgress || (() => {});
 
   const jobs = [];
@@ -127,7 +131,12 @@ async function discover(opts = {}) {
     for (const slug of BOARDS[ats]) {
       try {
         let found = await FETCHERS[ats](slug);
-        if (q) found = found.filter((j) => (j.jobTitle || '').toLowerCase().includes(q));
+        if (keywords.length) {
+          found = found.filter((j) => {
+            const title = (j.jobTitle || '').toLowerCase();
+            return keywords.some((k) => title.includes(k));
+          });
+        }
         if (limitPerBoard > 0) found = found.slice(0, limitPerBoard);
         jobs.push(...found);
         boardsHit++;

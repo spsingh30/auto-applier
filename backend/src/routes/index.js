@@ -23,6 +23,7 @@ router.patch('/applications/:id/status', applicationController.updateStatus);
 
 // Discovery (crawler — verified ATS boards se open jobs)
 router.get('/discover/boards', discoverController.boards);
+router.get('/discover/keywords', discoverController.keywords);
 router.post('/discover', discoverController.run);
 
 module.exports = router;

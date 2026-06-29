@@ -35,7 +35,7 @@ export default function App() {
 
       <UploadCard onUploaded={refresh} />
       <ProfileCard profile={profile} />
-      <DiscoverCard onDiscovered={refresh} />
+      <DiscoverCard profile={profile} onDiscovered={refresh} />
       <ApplicationsTable applications={applications} />
     </div>
   );

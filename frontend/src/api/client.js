@@ -29,6 +29,13 @@ export async function getBoards() {
   return res.json();
 }
 
+// Latest resume se suggested job keywords.
+export async function getKeywords() {
+  const res = await fetch(`${BASE}/discover/keywords`);
+  if (!res.ok) throw new Error('Keywords load nahi hue');
+  return (await res.json()).keywords;
+}
+
 // Discovery chalu karo. opts: { ats: string[], limitPerBoard, query }
 export async function discoverJobs(opts = {}) {
   const res = await fetch(`${BASE}/discover`, {
