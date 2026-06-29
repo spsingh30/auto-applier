@@ -1,0 +1,485 @@
+company,career_url,ats,login_required,captcha
+Walmart,https://careers.walmart.com,Workday,Yes,Sometimes
+Amazon,https://www.amazon.jobs,Amazon (custom),Yes,Yes
+State Grid Corporation of China,http://www.sgcc.com.cn,Custom,Yes,Yes
+Sinopec Group,http://www.sinopecgroup.com/group/en/Careers/,Custom,Yes,Yes
+China National Petroleum (CNPC),https://www.cnpc.com.cn/en/jobopportunity/jobopportunity_index.shtml,Custom,Yes,Yes
+Royal Dutch Shell,https://www.shell.com/careers.html,SuccessFactors,Yes,Sometimes
+Apple,https://www.apple.com/careers/,Apple (custom),Yes,Yes
+Saudi Aramco,https://www.aramco.com/en/careers,Custom,Yes,Sometimes
+CVS Health,https://jobs.cvshealth.com,Workday,Yes,Sometimes
+UnitedHealth Group,https://careers.unitedhealthgroup.com,Custom,Yes,Sometimes
+Berkshire Hathaway,https://www.berkshirehathaway.com/careers/careers.html,Varies (subsidiaries),Varies,Varies
+McKesson,https://careers.mckesson.com,Workday,Yes,Sometimes
+ExxonMobil,https://jobs.exxonmobil.com,Custom,Yes,Sometimes
+Glencore,https://www.glencore.com/careers,SuccessFactors,Yes,Sometimes
+Toyota Motor,https://www.toyota.com/careers/,Workday,Yes,Sometimes
+Volkswagen Group,https://www.volkswagen-group.com/en/careers-15829,SuccessFactors,Yes,Sometimes
+Samsung Electronics,https://sec.wd3.myworkdayjobs.com/Samsung_Careers,Workday,Yes,Sometimes
+BP,https://www.bp.com/en/global/corporate/careers.html,Workday,Yes,Sometimes
+Daimler (Mercedes-Benz Group),https://group.mercedes-benz.com/careers/,SuccessFactors,Yes,Sometimes
+Ford Motor,https://corporate.ford.com/careers.html,Workday,Yes,Sometimes
+Chevron,https://careers.chevron.com,Workday,Yes,Sometimes
+Costco Wholesale,https://www.costco.com/jobs.html,Custom,Yes,Sometimes
+Cigna,https://jobs.cigna.com,Workday,Yes,Sometimes
+Cardinal Health,https://jobs.cardinalhealth.com,Workday,Yes,Sometimes
+AT&T,https://www.att.jobs,Custom,Yes,Sometimes
+AmerisourceBergen (Cencora),https://careers.cencora.com,Workday,Yes,Sometimes
+Verizon Communications,https://mycareer.verizon.com,Custom,Yes,Sometimes
+The Kroger Co.,https://jobs.kroger.com,Custom,Yes,Sometimes
+General Motors,https://search-careers.gm.com,Workday,Yes,Sometimes
+Walgreens Boots Alliance,https://jobs.walgreens.com,Custom,Yes,Sometimes
+Honda Motor,https://www.honda.com/careers,Workday,Yes,Sometimes
+BMW Group,https://www.bmwgroup.jobs/en.html,SuccessFactors,Yes,Sometimes
+Nestle,https://www.nestle.com/jobs,SuccessFactors,Yes,Sometimes
+Procter & Gamble,https://www.pgcareers.com,Custom,Yes,Yes
+PepsiCo,https://www.pepsicojobs.com,Custom,Yes,Sometimes
+The Coca-Cola Company,https://careers.coca-colacompany.com,Workday,Yes,Sometimes
+LVMH,https://www.lvmh.com/join-us/,SmartRecruiters,No,Sometimes
+Novartis,https://www.novartis.com/careers,Workday,Yes,Sometimes
+Pfizer,https://www.pfizer.com/about/careers,Workday,Yes,Sometimes
+Roche,https://careers.roche.com,Avature,Yes,Sometimes
+Merck & Co.,https://jobs.merck.com,Phenom/Custom,Yes,Sometimes
+Abbott Laboratories,https://www.jobs.abbott,Workday,Yes,Sometimes
+Johnson & Johnson,https://www.careers.jnj.com,Workday,Yes,Sometimes
+Siemens,https://jobs.siemens.com,Avature,Yes,Sometimes
+Hitachi,https://www.hitachi.com/recruit/,Custom,Yes,Sometimes
+Panasonic,https://www.panasonic.com/global/corporate/careers.html,Workday,Yes,Sometimes
+Sony Group,https://www.sony.com/en/SonyInfo/Careers/,Custom,Yes,Sometimes
+LG Electronics,https://www.lg.com/global/careers,Custom,Yes,Sometimes
+Huawei,https://career.huawei.com,Custom,Yes,Yes
+Alibaba Group,https://talent.alibaba.com/off-campus,Custom,Yes,Yes
+Tencent,https://careers.tencent.com/en-us/home.html,Custom,Yes,Yes
+Baidu,https://talent.baidu.com,Custom,Yes,Yes
+JD.com,https://about.jd.com/careers/,Custom,Yes,Yes
+Meituan,https://zhaopin.meituan.com,Custom,Yes,Yes
+Xiaomi,https://hr.xiaomi.com,Custom,Yes,Yes
+ByteDance,https://jobs.bytedance.com,Custom,Yes,Yes
+Uber,https://www.uber.com/us/en/careers/,Greenhouse,No,Sometimes
+Lyft,https://www.lyft.com/careers,Greenhouse,No,Sometimes
+Airbnb,https://careers.airbnb.com,Greenhouse,No,Sometimes
+Booking Holdings,https://careers.bookingholdings.com,Workday,Yes,Sometimes
+Expedia Group,https://careers.expediagroup.com,Workday,Yes,Sometimes
+Dell Technologies,https://jobs.dell.com,Workday,Yes,Sometimes
+HP Inc.,https://jobs.hp.com,Workday,Yes,Sometimes
+Intel,https://jobs.intel.com,Workday,Yes,Sometimes
+NVIDIA,https://www.nvidia.com/en-us/about-nvidia/careers/,Workday,Yes,Sometimes
+Oracle,https://careers.oracle.com,Oracle Recruiting,Yes,Sometimes
+SAP,https://jobs.sap.com,SuccessFactors,Yes,Sometimes
+Salesforce,https://careers.salesforce.com,Workday,Yes,Sometimes
+ServiceNow,https://careers.servicenow.com,Workday,Yes,Sometimes
+Zoom Video Communications,https://careers.zoom.us,Workday,Yes,Sometimes
+Meta (Facebook),https://www.metacareers.com,Meta (custom),Yes,Yes
+Alphabet (Google),https://www.google.com/about/careers/applications/,Google (custom),Yes,Yes
+Stripe,https://stripe.com/jobs,Greenhouse,No,Sometimes
+Block (Square),https://block.xyz/careers,SmartRecruiters,No,Sometimes
+PayPal,https://careers.pypl.com,Workday,Yes,Sometimes
+Shopify,https://www.shopify.com/careers,Greenhouse,No,Sometimes
+LinkedIn (Microsoft),https://careers.linkedin.com,Microsoft (custom),Yes,Yes
+Adobe,https://careers.adobe.com,Workday,Yes,Sometimes
+VMware (Broadcom),https://www.vmware.com/company/careers.html,Workday,Yes,Sometimes
+Cisco Systems,https://jobs.cisco.com,Custom,Yes,Sometimes
+Accenture,https://www.accenture.com/us-en/careers,Custom,Yes,Sometimes
+Capgemini,https://www.capgemini.com/careers/,Workday,Yes,Sometimes
+Cognizant,https://careers.cognizant.com,Workday,Yes,Sometimes
+Tata Consultancy Services (TCS),https://www.tcs.com/careers,Custom (TCS NextStep),Yes,Yes
+Infosys,https://www.infosys.com/careers/,Custom,Yes,Yes
+Wipro,https://careers.wipro.com,Workday,Yes,Sometimes
+HCLTech,https://www.hcltech.com/careers,SuccessFactors,Yes,Sometimes
+Tech Mahindra,https://careers.techmahindra.com,Custom,Yes,Sometimes
+LTIMindtree,https://www.ltimindtree.com/careers/,Custom,Yes,Sometimes
+Mphasis,https://careers.mphasis.com,Custom,Yes,Sometimes
+Persistent Systems,https://www.persistent.com/careers/,Custom,Yes,Sometimes
+IBM,https://www.ibm.com/careers,IBM (custom/Avature),Yes,Sometimes
+NTT DATA,https://careers.nttdata.com,Workday,Yes,Sometimes
+Fujitsu,https://www.fujitsu.com/global/about/careers/,Workday,Yes,Sometimes
+Hitachi Vantara,https://careers.hitachivantara.com,Workday,Yes,Sometimes
+DXC Technology,https://careers.dxc.com,Avature,Yes,Sometimes
+HCL Infosystems,https://www.hclinfosystems.in/careers/,Custom,Yes,Sometimes
+Samsung SDS,https://www.samsungsds.com/us/about-careers/careers.html,Custom,Yes,Sometimes
+ThoughtWorks,https://www.thoughtworks.com/careers,Lever,No,Sometimes
+Oracle India,https://careers.oracle.com,Oracle Recruiting,Yes,Sometimes
+Microsoft India,https://careers.microsoft.com,Microsoft (custom),Yes,Yes
+Apple India,https://www.apple.com/in/careers/,Apple (custom),Yes,Yes
+Amazon India,https://www.amazon.jobs/en/locations/india,Amazon (custom),Yes,Yes
+Flipkart,https://www.flipkartcareers.com,Custom,Yes,Sometimes
+Reliance Industries,https://careers.ril.com,SuccessFactors,Yes,Sometimes
+Reliance Retail,https://relianceretail.com/careers.html,SuccessFactors,Yes,Sometimes
+Jio Platforms,https://careers.jio.com,Custom,Yes,Sometimes
+Tata Group,https://www.tata.com/careers,Varies (subsidiaries),Varies,Varies
+Tata Motors,https://www.tatamotors.com/careers/,SuccessFactors,Yes,Sometimes
+Tata Steel,https://www.tatasteel.com/careers/,SuccessFactors,Yes,Sometimes
+Tata Power,https://www.tatapower.com/careers/overview.aspx,Custom,Yes,Sometimes
+Tata Consumer Products,https://www.tataconsumer.com/careers,SuccessFactors,Yes,Sometimes
+Tata Communications,https://www.tatacommunications.com/careers/,Custom,Yes,Sometimes
+Mahindra & Mahindra,https://www.mahindra.com/careers,SuccessFactors,Yes,Sometimes
+Mahindra Group,https://www.mahindra.com/careers,SuccessFactors,Yes,Sometimes
+Maruti Suzuki,https://www.marutisuzuki.com/corporate/careers,Custom,Yes,Sometimes
+Bajaj Auto,https://www.bajajauto.com/careers,Custom,Yes,Sometimes
+Hero MotoCorp,https://www.heromotocorp.com/en-in/careers.html,SuccessFactors,Yes,Sometimes
+TVS Motor Company,https://www.tvsmotor.com/careers,Custom,Yes,Sometimes
+Mahindra Electric,https://www.mahindra.com/careers,SuccessFactors,Yes,Sometimes
+Ashok Leyland,https://www.ashokleyland.com/careers,Custom,Yes,Sometimes
+Ford India,https://corporate.ford.com/careers.html,Workday,Yes,Sometimes
+Hyundai Motor India,https://www.hyundai.com/in/en/careers,Custom,Yes,Sometimes
+MG Motor India,https://www.mgmotor.co.in/careers,Custom,Yes,Sometimes
+Volvo Group,https://www.volvogroup.com/en/careers.html,Workday,Yes,Sometimes
+Uber India,https://www.uber.com/in/en/careers/,Greenhouse,No,Sometimes
+Ola Cabs,https://www.olacabs.com/careers,Custom,Yes,Sometimes
+Zomato,https://www.zomato.com/careers,Custom,No,Sometimes
+Swiggy,https://careers.swiggy.com,Custom,No,Sometimes
+BigBasket,https://www.bigbasket.com/careers/,Custom,No,Sometimes
+Nykaa,https://www.nykaa.com/careers,Custom,No,Sometimes
+Myntra,https://careers.myntra.com,Custom,Yes,Sometimes
+Ajio (Reliance),https://relianceretail.com/careers.html,SuccessFactors,Yes,Sometimes
+Snapdeal,https://www.snapdeal.com/page/careers,Custom,No,Sometimes
+Paytm,https://paytm.com/careers,Custom,No,Sometimes
+PhonePe,https://www.phonepe.com/careers/,Greenhouse,No,Sometimes
+Razorpay,https://razorpay.com/jobs/,Greenhouse,No,Sometimes
+PolicyBazaar,https://www.policybazaar.com/careers/,Custom,No,Sometimes
+CRED,https://careers.cred.club,Lever,No,Sometimes
+Groww,https://groww.in/careers,Lever,No,Sometimes
+Zerodha,https://zerodha.com/careers/,Custom,No,Sometimes
+Upstox,https://upstox.com/careers/,Lever,No,Sometimes
+Angel One (Angel Broking),https://www.angelone.in/careers,Custom,No,Sometimes
+Kotak Mahindra Bank,https://www.kotak.com/en/careers.html,SuccessFactors,Yes,Sometimes
+HDFC Bank,https://www.hdfcbank.com/personal/about-us/careers,Custom,Yes,Sometimes
+ICICI Bank,https://www.icicicareers.com,Custom,Yes,Sometimes
+State Bank of India (SBI),https://sbi.co.in/web/careers,Custom (govt),Yes,Yes
+Axis Bank,https://www.axisbank.com/careers,SuccessFactors,Yes,Sometimes
+IndusInd Bank,https://www.indusind.com/in/en/personal/careers.html,Custom,Yes,Sometimes
+Yes Bank,https://www.yesbank.in/careers,Custom,Yes,Sometimes
+Bank of Baroda,https://www.bankofbaroda.in/career,Custom (govt),Yes,Yes
+Punjab National Bank,https://www.pnbindia.in/recruitments.html,Custom (govt),Yes,Yes
+Canara Bank,https://canarabank.com/careers,Custom (govt),Yes,Yes
+IDFC First Bank,https://www.idfcfirstbank.com/careers,Custom,Yes,Sometimes
+Standard Chartered,https://www.sc.com/en/careers/,Workday,Yes,Sometimes
+HSBC,https://www.hsbc.com/careers,Workday,Yes,Sometimes
+Citibank,https://jobs.citi.com,Custom,Yes,Sometimes
+JPMorgan Chase,https://careers.jpmorgan.com,Oracle/Custom,Yes,Sometimes
+Bank of America,https://careers.bankofamerica.com,Workday,Yes,Sometimes
+Wells Fargo,https://www.wellsfargojobs.com,Custom,Yes,Sometimes
+Goldman Sachs,https://www.goldmansachs.com/careers/,Custom,Yes,Sometimes
+Morgan Stanley,https://www.morganstanley.com/careers,Workday,Yes,Sometimes
+UBS,https://www.ubs.com/global/en/careers.html,Avature,Yes,Sometimes
+Credit Suisse (now UBS),https://www.ubs.com/global/en/careers.html,Avature,Yes,Sometimes
+Barclays,https://search.jobs.barclays,WorkInPartnership/Custom,Yes,Sometimes
+Deutsche Bank,https://careers.db.com,Avature,Yes,Sometimes
+BNP Paribas,https://group.bnpparibas/en/careers,SmartRecruiters,No,Sometimes
+Societe Generale,https://careers.societegenerale.com,Custom,Yes,Sometimes
+Nomura Holdings,https://www.nomura.com/careers/,Workday,Yes,Sometimes
+HSBC India,https://www.hsbc.com/careers,Workday,Yes,Sometimes
+Kotak Life,https://www.kotaklife.com/careers,SuccessFactors,Yes,Sometimes
+HDFC Life,https://www.hdfclife.com/about-us/careers,Custom,Yes,Sometimes
+Bajaj Finserv,https://www.bajajfinserv.in/careers,Custom,Yes,Sometimes
+Muthoot Finance,https://www.muthootfinance.com/careers,Custom,Yes,Sometimes
+Shriram Finance,https://www.shriramfinance.in/careers,Custom,Yes,Sometimes
+Mahindra Finance,https://www.mahindrafinance.com/careers,SuccessFactors,Yes,Sometimes
+Adani Group,https://www.adani.com/careers,SuccessFactors,Yes,Sometimes
+Adani Ports,https://www.adaniports.com/Careers,SuccessFactors,Yes,Sometimes
+Adani Enterprises,https://www.adanienterprises.com/careers,SuccessFactors,Yes,Sometimes
+Adani Green Energy,https://www.adanigreenenergy.com/careers,SuccessFactors,Yes,Sometimes
+NTPC,https://careers.ntpc.co.in,Custom (govt/PSU),Yes,Yes
+ONGC,https://ongcindia.com/web/eng/career,Custom (govt/PSU),Yes,Yes
+Indian Oil Corporation,https://iocl.com/latest-job-openings,Custom (govt/PSU),Yes,Yes
+Bharat Petroleum (BPCL),https://www.bharatpetroleum.in/bpcl-and-beyond/careers/careers.aspx,Custom (govt/PSU),Yes,Yes
+GAIL (India),https://gailonline.com/CRGIRecruitment.html,Custom (govt/PSU),Yes,Yes
+Power Grid Corporation of India,https://www.powergrid.in/en/careers,Custom (govt/PSU),Yes,Yes
+BHEL,https://careers.bhel.in,Custom (govt/PSU),Yes,Yes
+JSW Steel,https://www.jsw.in/careers,SuccessFactors,Yes,Sometimes
+Jindal Steel & Power,https://www.jindalsteelpower.com/careers.html,Custom,Yes,Sometimes
+Vedanta,https://www.vedantalimited.com/eng/careers.php,SuccessFactors,Yes,Sometimes
+Hindalco Industries,https://www.hindalco.com/careers,SuccessFactors,Yes,Sometimes
+Reliance Naval and Engineering,https://www.ril.com/careers,SuccessFactors,Yes,Sometimes
+Larsen & Toubro (L&T),https://www.larsentoubro.com/corporate/careers/,SuccessFactors,Yes,Sometimes
+L&T Technology Services,https://www.ltts.com/careers,Custom,Yes,Sometimes
+Godrej Group,https://www.godrej.com/careers,SuccessFactors,Yes,Sometimes
+Godrej Consumer Products,https://www.godrejcp.com/careers,SuccessFactors,Yes,Sometimes
+Godrej Industries,https://www.godrejindustries.com/careers,SuccessFactors,Yes,Sometimes
+Dabur,https://www.dabur.com/careers,SuccessFactors,Yes,Sometimes
+Marico,https://marico.com/india/careers,SuccessFactors,Yes,Sometimes
+Hindustan Unilever (HUL),https://www.hul.co.in/careers/,Workday,Yes,Sometimes
+ITC Limited,https://www.itcportal.com/careers/,Custom,Yes,Sometimes
+Britannia Industries,https://www.britannia.co.in/careers,Custom,Yes,Sometimes
+Nestle India,https://www.nestle.in/jobs,SuccessFactors,Yes,Sometimes
+PepsiCo India,https://www.pepsicojobs.com,Custom,Yes,Sometimes
+Coca-Cola India,https://careers.coca-colacompany.com,Workday,Yes,Sometimes
+Emami,https://www.emamiltd.in/careers/,Custom,Yes,Sometimes
+Colgate-Palmolive India,https://jobs.colgate.com,Workday,Yes,Sometimes
+GlaxoSmithKline (GSK),https://www.gsk.com/en-gb/careers/,Workday,Yes,Sometimes
+Sanofi,https://www.sanofi.com/en/careers,Workday,Yes,Sometimes
+Cipla,https://www.cipla.com/careers,SuccessFactors,Yes,Sometimes
+Dr. Reddy's Laboratories,https://careers.drreddys.com,SuccessFactors,Yes,Sometimes
+Sun Pharmaceutical Industries,https://sunpharma.com/careers/,SuccessFactors,Yes,Sometimes
+Lupin,https://www.lupin.com/careers/,SuccessFactors,Yes,Sometimes
+Aurobindo Pharma,https://www.aurobindo.com/careers/,Custom,Yes,Sometimes
+Biocon,https://www.biocon.com/careers/,SuccessFactors,Yes,Sometimes
+Torrent Pharmaceuticals,https://www.torrentpharma.com/career.php,Custom,Yes,Sometimes
+Glenmark Pharmaceuticals,https://www.glenmarkpharma.com/careers,SuccessFactors,Yes,Sometimes
+Abbott India,https://www.jobs.abbott,Workday,Yes,Sometimes
+Bayer India,https://www.bayer.com/en/in/careers,Workday,Yes,Sometimes
+Novartis India,https://www.novartis.com/careers,Workday,Yes,Sometimes
+Pfizer India,https://www.pfizer.com/about/careers,Workday,Yes,Sometimes
+Merck India,https://jobs.merck.com,Phenom/Custom,Yes,Sometimes
+Zydus Lifesciences (Zydus Cadila),https://www.zyduslife.com/careers,Custom,Yes,Sometimes
+Alkem Laboratories,https://www.alkemlabs.com/careers.php,Custom,Yes,Sometimes
+Wockhardt,https://www.wockhardt.com/careers/,Custom,Yes,Sometimes
+Mankind Pharma,https://www.mankindpharma.com/careers/,Custom,Yes,Sometimes
+Intas Pharmaceuticals,https://www.intaspharma.com/careers/,Custom,Yes,Sometimes
+Serum Institute of India,https://www.seruminstitute.com/careers.php,Custom,Yes,Sometimes
+Bharat Biotech,https://www.bharatbiotech.com/careers.html,Custom,Yes,Sometimes
+Siemens India,https://jobs.siemens.com,Avature,Yes,Sometimes
+ABB India,https://careers.abb,Custom,Yes,Sometimes
+Schneider Electric India,https://www.se.com/in/en/about-us/careers/,SuccessFactors,Yes,Sometimes
+Honeywell India,https://careers.honeywell.com,Workday,Yes,Sometimes
+3M India,https://www.3m.com/3M/en_US/careers-us/,Workday,Yes,Sometimes
+Bosch Limited,https://www.bosch.in/careers/,SuccessFactors,Yes,Sometimes
+Cummins India,https://www.cummins.com/careers,Custom,Yes,Sometimes
+Saint-Gobain India,https://www.saint-gobain.co.in/careers,SuccessFactors,Yes,Sometimes
+Eicher Motors,https://www.eicher.in/careers,Custom,Yes,Sometimes
+TVS Healthcare,https://www.tvsmotor.com/careers,Custom,Yes,Sometimes
+Philips India,https://www.careers.philips.com,Workday,Yes,Sometimes
+Johnson Controls India,https://www.johnsoncontrols.com/careers,Workday,Yes,Sometimes
+Tata Elxsi,https://www.tataelxsi.com/careers,Custom,Yes,Sometimes
+Bajaj Electricals,https://www.bajajelectricals.com/careers,Custom,Yes,Sometimes
+Whirlpool India,https://www.whirlpoolcareers.com,Workday,Yes,Sometimes
+Voltas,https://www.voltas.com/careers,Custom,Yes,Sometimes
+Blue Star,https://www.bluestarindia.com/careers.aspx,Custom,Yes,Sometimes
+IFB Industries,https://www.ifbindustries.com/careers,Custom,Yes,Sometimes
+Godrej Appliances,https://www.godrejappliances.com/careers,SuccessFactors,Yes,Sometimes
+Daikin India,https://www.daikinindia.com/careers,Custom,Yes,Sometimes
+Pantaloons (Aditya Birla Group),https://abfrl.com/careers/,SuccessFactors,Yes,Sometimes
+Shoppers Stop,https://corporate.shoppersstop.com/careers,Custom,Yes,Sometimes
+Reliance Brands,https://relianceretail.com/careers.html,SuccessFactors,Yes,Sometimes
+Trent (Tata Group),https://www.trent-tata.com/careers.html,Custom,Yes,Sometimes
+Future Group,https://www.futuregroup.in/careers,Custom,Yes,Sometimes
+Amazon Fashion,https://www.amazon.jobs,Amazon (custom),Yes,Yes
+Aditya Birla Fashion and Retail,https://abfrl.com/careers/,SuccessFactors,Yes,Sometimes
+Zara India (Inditex),https://www.inditexcareers.com,Custom,Yes,Sometimes
+Levi Strauss India,https://www.levistrauss.com/careers/,Workday,Yes,Sometimes
+Benetton India,https://www.benetton.com/careers/,Custom,Yes,Sometimes
+H&M India,https://career.hm.com,Workday,Yes,Sometimes
+Uniqlo India,https://www.uniqlo.com/in/en/company/careers.html,Custom,Yes,Sometimes
+IKEA India,https://www.ikea.com/in/en/this-is-ikea/work-with-us/,SmartRecruiters,No,Sometimes
+Home Depot,https://careers.homedepot.com,Custom,Yes,Sometimes
+Lowe's,https://talent.lowes.com,Workday,Yes,Sometimes
+Best Buy,https://www.bestbuy-jobs.com,Custom,Yes,Sometimes
+IKEA,https://www.ikea.com/global/en/jobs/,SmartRecruiters,No,Sometimes
+Carrefour,https://www.carrefour.com/en/group/careers,Custom,Yes,Sometimes
+Tesco,https://www.tesco-careers.com,Custom,Yes,Sometimes
+Sainsbury's,https://sainsburys.jobs,Custom,Yes,Sometimes
+Aldi,https://careers.aldi.com,Custom,Yes,Sometimes
+Lidl,https://careers.lidl.com,SuccessFactors,Yes,Sometimes
+Woolworths,https://www.wowcareers.com.au,Custom,Yes,Sometimes
+Metro AG,https://www.metroag.de/en/career,SuccessFactors,Yes,Sometimes
+Casino Group,https://www.groupe-casino.fr/en/careers/,Custom,Yes,Sometimes
+DMart (Avenue Supermarts),https://www.dmartindia.com/careers,Custom,Yes,Sometimes
+Spencer's Retail,https://www.spencers.in/careers,Custom,Yes,Sometimes
+Big Bazaar (Future Group),https://www.futuregroup.in/careers,Custom,Yes,Sometimes
+Costco,https://www.costco.com/jobs.html,Custom,Yes,Sometimes
+Marks & Spencer,https://jobs.marksandspencer.com,Workday,Yes,Sometimes
+Staples,https://careers.staples.com,Workday,Yes,Sometimes
+Office Depot,https://jobs.officedepot.com,Workday,Yes,Sometimes
+Walgreens,https://jobs.walgreens.com,Custom,Yes,Sometimes
+Ralph Lauren,https://www.ralphlauren.com/rl-careers,Workday,Yes,Sometimes
+H&M,https://career.hm.com,Workday,Yes,Sometimes
+VF Corporation (Vans Timberland),https://www.vfc.com/careers,Workday,Yes,Sometimes
+Under Armour,https://careers.underarmour.com,Workday,Yes,Sometimes
+Nike,https://jobs.nike.com,Custom,Yes,Sometimes
+Adidas,https://careers.adidas-group.com,Custom,Yes,Sometimes
+Puma,https://about.puma.com/en/careers,SuccessFactors,Yes,Sometimes
+Skechers,https://www.skechers.com/careers/,Workday,Yes,Sometimes
+New Balance,https://jobs.newbalance.com,Workday,Yes,Sometimes
+Fila,https://www.fila.com/careers,Custom,Yes,Sometimes
+Reebok,https://www.reebok.com/careers,Custom,Yes,Sometimes
+Asics,https://corp.asics.com/en/careers,Custom,Yes,Sometimes
+AstraZeneca India,https://careers.astrazeneca.com,Workday,Yes,Sometimes
+Bristol-Myers Squibb India,https://careers.bms.com,Workday,Yes,Sometimes
+Eli Lilly India,https://careers.lilly.com,Workday,Yes,Sometimes
+AbbVie India,https://careers.abbvie.com,Workday,Yes,Sometimes
+Takeda India,https://www.takedajobs.com,Workday,Yes,Sometimes
+Biocon Biologics,https://www.bioconbiologics.com/careers,SuccessFactors,Yes,Sometimes
+Dr. Lal PathLabs,https://www.lalpathlabs.com/careers,Custom,Yes,Sometimes
+SRL Diagnostics,https://www.srlworld.com/careers,Custom,Yes,Sometimes
+Thyrocare,https://www.thyrocare.com/careers,Custom,Yes,Sometimes
+Fortis Healthcare,https://www.fortishealthcare.com/careers,Custom,Yes,Sometimes
+Apollo Hospitals,https://www.apollohospitals.com/careers/,Custom,Yes,Sometimes
+Max Healthcare,https://www.maxhealthcare.in/careers,Custom,Yes,Sometimes
+Manipal Hospitals,https://www.manipalhospitals.com/careers/,Custom,Yes,Sometimes
+Narayana Health,https://www.narayanahealth.org/careers,Custom,Yes,Sometimes
+Aster DM Healthcare,https://www.asterdmhealthcare.com/careers,Custom,Yes,Sometimes
+Care Hospitals,https://www.carehospitals.com/careers/,Custom,Yes,Sometimes
+Columbia Asia Hospitals,https://www.columbiaindiahospitals.com/careers/,Custom,Yes,Sometimes
+Kokilaben Dhirubhai Ambani Hospital,https://www.kokilabenhospital.com/careers/careers.html,Custom,Yes,Sometimes
+Sunway Hospitals,https://www.sunwaymedical.com/careers,Custom,Yes,Sometimes
+Medanta,https://www.medanta.org/careers,Custom,Yes,Sometimes
+Hinduja Hospitals,https://www.hindujahospital.com/careers,Custom,Yes,Sometimes
+Cloudnine,https://www.cloudninecare.com/careers,Custom,Yes,Sometimes
+Narayana Hrudayalaya,https://www.narayanahealth.org/careers,Custom,Yes,Sometimes
+Apollo Clinics,https://www.apollohospitals.com/careers/,Custom,Yes,Sometimes
+Practo,https://www.practo.com/company/careers,Lever,No,Sometimes
+1mg (Tata 1mg),https://www.1mg.com/jobs,Custom,No,Sometimes
+PharmEasy,https://pharmeasy.in/careers,Lever,No,Sometimes
+Medlife,https://www.medlife.com/careers,Custom,No,Sometimes
+Cure.fit (Cult.fit),https://www.cure.fit/careers,Lever,No,Sometimes
+Fitbit (Google),https://www.google.com/about/careers/applications/,Google (custom),Yes,Yes
+Garmin India,https://careers.garmin.com,Workday,Yes,Sometimes
+Samsung Health,https://www.samsung.com/global/ir/careers/,Custom,Yes,Sometimes
+Xiaomi (Mi Health),https://hr.xiaomi.com,Custom,Yes,Yes
+Oppo,https://careers.oppo.com,Custom,Yes,Yes
+Vivo,https://www.vivo.com/en/about-vivo/careers,Custom,Yes,Yes
+Realme,https://www.realme.com/in/about-careers,Custom,Yes,Yes
+OnePlus,https://www.oneplus.com/careers,Custom,Yes,Yes
+Motorola India (Lenovo),https://jobs.lenovo.com,Workday,Yes,Sometimes
+Google India,https://www.google.com/about/careers/applications/,Google (custom),Yes,Yes
+Facebook India (Meta),https://www.metacareers.com,Meta (custom),Yes,Yes
+Twitter (X) India,https://careers.x.com,Custom,Yes,Sometimes
+Reddit,https://www.redditinc.com/careers,Greenhouse,No,Sometimes
+Quora,https://www.quora.com/careers,Greenhouse,No,Sometimes
+Stack Overflow,https://stackoverflow.co/company/work-here/,Greenhouse,No,Sometimes
+GitHub (Microsoft),https://github.com/about/careers,Microsoft (custom),Yes,Yes
+Atlassian,https://www.atlassian.com/company/careers,SmartRecruiters,No,Sometimes
+GitLab,https://about.gitlab.com/jobs/,Greenhouse,No,Sometimes
+Elastic,https://www.elastic.co/careers,Greenhouse,No,Sometimes
+MongoDB,https://www.mongodb.com/careers,Greenhouse,No,Sometimes
+Confluent,https://careers.confluent.io,Greenhouse,No,Sometimes
+Splunk (Cisco),https://www.splunk.com/en_us/careers.html,Custom,Yes,Sometimes
+Palantir Technologies,https://www.palantir.com/careers/,Lever,No,Sometimes
+Snowflake,https://careers.snowflake.com,Custom,Yes,Sometimes
+Databricks,https://www.databricks.com/company/careers,Greenhouse,No,Sometimes
+Cloudera,https://www.cloudera.com/about/careers.html,Workday,Yes,Sometimes
+DataRobot,https://www.datarobot.com/careers/,Greenhouse,No,Sometimes
+Alteryx,https://www.alteryx.com/about-us/careers,Workday,Yes,Sometimes
+Tableau (Salesforce),https://careers.salesforce.com,Workday,Yes,Sometimes
+Looker (Google),https://www.google.com/about/careers/applications/,Google (custom),Yes,Yes
+SAS Institute,https://www.sas.com/en_us/careers.html,Custom,Yes,Sometimes
+Teradata,https://careers.teradata.com,Workday,Yes,Sometimes
+MicroStrategy (Strategy),https://www.strategy.com/careers,Greenhouse,No,Sometimes
+Qualcomm,https://www.qualcomm.com/company/careers,Workday,Yes,Sometimes
+ARM Ltd.,https://careers.arm.com,Workday,Yes,Sometimes
+Broadcom,https://www.broadcom.com/company/careers,Workday,Yes,Sometimes
+Marvell Technology,https://www.marvell.com/company/careers.html,Workday,Yes,Sometimes
+Xilinx (AMD),https://careers.amd.com,Workday,Yes,Sometimes
+Texas Instruments,https://careers.ti.com,Custom,Yes,Sometimes
+Analog Devices,https://www.analog.com/en/about-adi/careers.html,Workday,Yes,Sometimes
+Micron Technology,https://www.micron.com/careers,Workday,Yes,Sometimes
+SK Hynix,https://careers.skhynix.com,Custom,Yes,Sometimes
+Western Digital,https://jobs.westerndigital.com,Workday,Yes,Sometimes
+Seagate Technology,https://www.seagate.com/careers/,Workday,Yes,Sometimes
+NetApp,https://www.netapp.com/company/careers/,Workday,Yes,Sometimes
+Pure Storage,https://www.purestorage.com/company/careers.html,Greenhouse,No,Sometimes
+Red Hat (IBM),https://www.redhat.com/en/jobs,Workday,Yes,Sometimes
+Canonical (Ubuntu),https://canonical.com/careers,Greenhouse,No,Sometimes
+Cloudflare,https://www.cloudflare.com/careers/,Greenhouse,No,Sometimes
+Fastly,https://www.fastly.com/about/careers,Greenhouse,No,Sometimes
+Akamai Technologies,https://www.akamai.com/careers,Custom,Yes,Sometimes
+Nutanix,https://www.nutanix.com/company/careers,Workday,Yes,Sometimes
+HPE (Hewlett Packard Enterprise),https://careers.hpe.com,Custom,Yes,Sometimes
+Lenovo,https://jobs.lenovo.com,Workday,Yes,Sometimes
+ASUS,https://www.asus.com/careers/,Custom,Yes,Sometimes
+Acer,https://www.acer.com/careers,Custom,Yes,Sometimes
+MSI,https://www.msi.com/about/careers,Custom,Yes,Sometimes
+Riot Platforms (RIOT),https://www.riotplatforms.com/careers/,Greenhouse,No,Sometimes
+Coinbase,https://www.coinbase.com/careers,Greenhouse,No,Sometimes
+Binance,https://www.binance.com/en/careers,Custom,No,Yes
+WazirX,https://wazirx.com/careers,Lever,No,Sometimes
+CoinDCX,https://careers.coindcx.com,Lever,No,Sometimes
+Paytm Payments Bank,https://paytm.com/careers,Custom,No,Sometimes
+Google Pay (GPay),https://www.google.com/about/careers/applications/,Google (custom),Yes,Yes
+Mastercard,https://careers.mastercard.com,Workday,Yes,Sometimes
+Visa,https://corporate.visa.com/en/jobs.html,Custom,Yes,Sometimes
+American Express,https://www.americanexpress.com/en-us/careers/,Custom,Yes,Sometimes
+Discover Financial Services,https://jobs.discover.com,Workday,Yes,Sometimes
+FIS Global,https://careers.fisglobal.com,Workday,Yes,Sometimes
+Fidelity Investments,https://jobs.fidelity.com,Custom,Yes,Sometimes
+BlackRock,https://careers.blackrock.com,Workday,Yes,Sometimes
+Vanguard,https://www.vanguardjobs.com,Custom,Yes,Sometimes
+State Street,https://careers.statestreet.com,Workday,Yes,Sometimes
+T. Rowe Price,https://www.troweprice.com/corporate/us/en/careers.html,Workday,Yes,Sometimes
+Capita,https://www.capita.com/careers,Custom,Yes,Sometimes
+Sutherland,https://www.sutherlandglobal.com/careers,Custom,Yes,Sometimes
+Teleperformance,https://www.teleperformance.com/en-us/careers/,Custom,Yes,Sometimes
+Concentrix,https://careers.concentrix.com,Custom,Yes,Sometimes
+Genpact,https://www.genpact.com/careers,Custom,Yes,Sometimes
+EXL Service,https://www.exlservice.com/careers,Custom,Yes,Sometimes
+Firstsource Solutions,https://www.firstsource.com/careers/,Custom,Yes,Sometimes
+WNS Global Services,https://www.wns.com/careers,Custom,Yes,Sometimes
+Alorica,https://www.alorica.com/careers,Custom,Yes,Sometimes
+HGS (Hinduja Global Solutions),https://www.teamhgs.com/careers,Custom,Yes,Sometimes
+Blue Dart Express,https://www.bluedart.com/careers,Custom,Yes,Sometimes
+DHL Express,https://careers.dhl.com,SuccessFactors,Yes,Sometimes
+FedEx,https://careers.fedex.com,Custom,Yes,Sometimes
+UPS,https://www.jobs-ups.com,Custom,Yes,Sometimes
+Delhivery,https://www.delhivery.com/careers/,Custom,No,Sometimes
+Gati,https://www.gati.com/careers/,Custom,Yes,Sometimes
+DTDC,https://www.dtdc.in/careers.asp,Custom,Yes,Sometimes
+XpressBees,https://www.xpressbees.com/careers,Custom,No,Sometimes
+Ecom Express,https://www.ecomexpress.in/careers/,Custom,No,Sometimes
+Amazon Logistics,https://www.amazon.jobs,Amazon (custom),Yes,Yes
+Mahindra Logistics,https://mahindralogistics.com/careers/,SuccessFactors,Yes,Sometimes
+Rhenus Logistics,https://www.rhenus.group/careers,SuccessFactors,Yes,Sometimes
+CEVA Logistics,https://www.cevalogistics.com/en/careers,SuccessFactors,Yes,Sometimes
+Kuehne + Nagel,https://home.kuehne-nagel.com/careers,SuccessFactors,Yes,Sometimes
+DB Schenker,https://www.dbschenker.com/global/careers,SuccessFactors,Yes,Sometimes
+Nippon Express,https://www.nipponexpress.com/careers/,Custom,Yes,Sometimes
+Yamato Transport,https://www.yamato-hd.co.jp/english/recruit/,Custom,Yes,Sometimes
+SF Express,https://www.sf-express.com/careers,Custom,Yes,Yes
+Aramex,https://www.aramex.com/careers,SuccessFactors,Yes,Sometimes
+Indian Railways (RRB),https://www.rrbcdg.gov.in,Custom (govt),Yes,Yes
+Air India,https://www.airindia.com/in/en/about-us/careers.html,Custom,Yes,Sometimes
+IndiGo (InterGlobe Aviation),https://careers.goindigo.in,Custom,Yes,Sometimes
+SpiceJet,https://www.spicejet.com/Careers.aspx,Custom,Yes,Sometimes
+Vistara (now Air India),https://www.airvistara.com/in/en/careers,Custom,Yes,Sometimes
+Go First,https://www.flygofirst.com/careers,Custom,Yes,Sometimes
+AirAsia India (Air India Express),https://www.airindiaexpress.com/careers,Custom,Yes,Sometimes
+Akasa Air,https://www.akasaair.com/careers,Custom,Yes,Sometimes
+Emirates,https://www.emiratesgroupcareers.com,Custom,Yes,Sometimes
+Qatar Airways,https://careers.qatarairways.com,SuccessFactors,Yes,Sometimes
+Etihad Airways,https://careers.etihad.com,SuccessFactors,Yes,Sometimes
+British Airways,https://careers.ba.com,Custom,Yes,Sometimes
+Lufthansa,https://www.be-lufthansa.com/en/,Custom,Yes,Sometimes
+Air France-KLM,https://recrutement.airfrance.com/en,Custom,Yes,Sometimes
+Delta Air Lines,https://www.delta.com/us/en/careers/overview,Custom,Yes,Sometimes
+American Airlines,https://jobs.aa.com,Custom,Yes,Sometimes
+United Airlines,https://careers.united.com,Custom,Yes,Sometimes
+Southwest Airlines,https://careers.southwestair.com,Custom,Yes,Sometimes
+Singapore Airlines,https://www.singaporeair.com/en_UK/careers/,Custom,Yes,Sometimes
+Cathay Pacific,https://careers.cathaypacific.com,Custom,Yes,Sometimes
+Marriott International,https://careers.marriott.com,Custom,Yes,Sometimes
+Hilton Worldwide,https://jobs.hilton.com,Workday,Yes,Sometimes
+Hyatt Hotels,https://careers.hyatt.com,Workday,Yes,Sometimes
+Accor Hotels,https://careers.accor.com,SmartRecruiters,No,Sometimes
+Taj Hotels (Indian Hotels Company),https://www.ihcltata.com/careers/,SuccessFactors,Yes,Sometimes
+Oberoi Hotels & Resorts,https://www.oberoihotels.com/careers/,Custom,Yes,Sometimes
+ITC Hotels,https://www.itchotels.com/in/en/careers,Custom,Yes,Sometimes
+Lemon Tree Hotels,https://www.lemontreehotels.com/careers,Custom,Yes,Sometimes
+InterContinental Hotels Group (IHG),https://careers.ihg.com,Workday,Yes,Sometimes
+Radisson Hotel Group,https://careers.radissonhotels.com,SuccessFactors,Yes,Sometimes
+MakeMyTrip,https://careers.makemytrip.com,Custom,No,Sometimes
+Cleartrip,https://www.cleartrip.com/careers,Lever,No,Sometimes
+Yatra.com,https://www.yatra.com/corporate/careers,Custom,Yes,Sometimes
+Booking.com,https://careers.booking.com,Workday,Yes,Sometimes
+Expedia India,https://careers.expediagroup.com,Workday,Yes,Sometimes
+OYO Rooms,https://www.oyorooms.com/careers/,Lever,No,Sometimes
+Treebo Hotels,https://www.treebo.com/careers,Custom,No,Sometimes
+FabHotels,https://www.fabhotels.com/careers.html,Custom,No,Sometimes
+Goibibo (MakeMyTrip),https://careers.makemytrip.com,Custom,No,Sometimes
+Airbnb India,https://careers.airbnb.com,Greenhouse,No,Sometimes
+Byju's,https://byjus.com/careers/,Custom,No,Sometimes
+Unacademy,https://unacademy.com/careers,Lever,No,Sometimes
+Vedantu,https://www.vedantu.com/careers,Custom,No,Sometimes
+Toppr,https://www.toppr.com/careers/,Custom,No,Sometimes
+Simplilearn,https://www.simplilearn.com/careers,Custom,No,Sometimes
+upGrad,https://www.upgrad.com/careers/,Lever,No,Sometimes
+Coursera,https://about.coursera.org/careers,Greenhouse,No,Sometimes
+Udemy,https://about.udemy.com/careers/,Greenhouse,No,Sometimes
+Khan Academy,https://www.khanacademy.org/careers,Lever,No,Sometimes
+edX,https://www.edx.org/about/careers,Custom,No,Sometimes
+NIIT,https://www.niit.com/india/careers,Custom,Yes,Sometimes
+Aptech,https://www.aptech-worldwide.com/careers,Custom,Yes,Sometimes
+Edureka,https://www.edureka.co/careers,Custom,No,Sometimes
+Great Learning,https://www.mygreatlearning.com/careers,Custom,No,Sometimes
+Shiksha (Info Edge),https://www.infoedge.in/careers.php,Custom,No,Sometimes
+Careers360,https://www.careers360.com/about-us/careers,Custom,No,Sometimes
+Meritnation,https://www.meritnation.com/careers,Custom,No,Sometimes
+Extramarks,https://www.extramarks.com/careers,Custom,No,Sometimes
