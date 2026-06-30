@@ -1,6 +1,6 @@
-// Resume profile -> job-search keywords suggest karta hai.
-// Pehle LLM (OpenRouter, sasta free model) try karta hai; na ho/fail ho to
-// skills + experience titles se heuristic keywords banata hai.
+// Resume profile -> suggests job-search keywords.
+// First it tries the LLM (OpenRouter, a cheap free model); if unavailable or it fails,
+// it builds heuristic keywords from skills + experience titles.
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You suggest job-search keywords for a candidate based on their resume.
@@ -11,7 +11,7 @@ Rules:
 - No duplicates, no sentences, no markdown. JSON only.`;
 
 /**
- * @param {object} profile  - profileModel.getLatest() ka output (skills array, experiences[])
+ * @param {object} profile  - output of profileModel.getLatest() (skills array, experiences[])
  * @returns {Promise<string[]>}
  */
 async function suggestKeywords(profile) {
@@ -23,7 +23,7 @@ async function suggestKeywords(profile) {
       const llm = await llmKeywords(profile, apiKey);
       if (llm.length) return dedupe(llm);
     } catch (err) {
-      console.error('[keywords] LLM fail, heuristic pe gir rahe hain:', err.message);
+      console.error('[keywords] LLM failed, falling back to heuristics:', err.message);
     }
   }
 
@@ -31,7 +31,7 @@ async function suggestKeywords(profile) {
 }
 
 async function llmKeywords(profile, apiKey) {
-  const model = process.env.LLM_MODEL || 'google/gemini-2.0-flash-exp:free';
+  const model = process.env.KEYWORDS_MODEL || 'google/gemini-2.0-flash-exp:free';
   const titles = (profile.experiences || []).map((e) => e.title).filter(Boolean);
   const context = [
     `Skills: ${(profile.skills || []).join(', ') || '(none)'}`,
@@ -62,25 +62,25 @@ async function llmKeywords(profile, apiKey) {
   const text = body?.choices?.[0]?.message?.content || '';
   const json = extractJson(text);
   const arr = Array.isArray(json) ? json : json.keywords;
-  if (!Array.isArray(arr)) throw new Error('keywords array nahi mila');
+  if (!Array.isArray(arr)) throw new Error('keywords array not found');
   return arr.filter((k) => typeof k === 'string' && k.trim()).map((k) => k.trim());
 }
 
-// LLM kabhi ```json fence laga deta hai — saaf karke parse karo.
+// The LLM sometimes wraps output in a ```json fence — clean it up and parse.
 function extractJson(text) {
   const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   const start = cleaned.search(/[[{]/);
-  if (start === -1) throw new Error('JSON nahi mila');
+  if (start === -1) throw new Error('No JSON found');
   return JSON.parse(cleaned.slice(start));
 }
 
-// --- Fallback: bina LLM ke. Past roles + skills se keywords. ---
+// --- Fallback: without the LLM. Keywords from past roles + skills. ---
 function heuristicKeywords(profile) {
   const titles = (profile.experiences || []).map((e) => e.title).filter(Boolean);
   const skills = (profile.skills || []).filter(Boolean);
 
   const out = [...titles];
-  // Top skills ko "<Skill> Developer" role keyword bana do (web/dev skills ke liye useful).
+  // Turn top skills into "<Skill> Developer" role keywords (useful for web/dev skills).
   for (const s of skills.slice(0, 6)) {
     out.push(s);
     out.push(`${s} Developer`);

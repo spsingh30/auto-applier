@@ -1,4 +1,4 @@
-// Express app setup (server start alag file me — testable rehta hai).
+// Express app setup (server start lives in a separate file — keeps it testable).
 const express = require('express');
 const cors = require('cors');
 const routes = require('./routes');

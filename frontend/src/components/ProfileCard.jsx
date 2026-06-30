@@ -1,19 +1,142 @@
-// Extracted profile data dikhata hai — naam, contact, skills, experience, education.
-export default function ProfileCard({ profile }) {
+// Displays the extracted profile — and lets the user edit/correct it (in case the parser gets something wrong).
+import { useState, useEffect } from 'react';
+import { updateProfile } from '../api/client';
+
+const FIELDS = [
+  ['fullName', 'Full name'],
+  ['email', 'Email'],
+  ['phone', 'Phone'],
+  ['location', 'Location'],
+  ['linkedin', 'LinkedIn'],
+  ['website', 'Website'],
+];
+
+export default function ProfileCard({ profile, onSaved }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(null);
+  const [skillInput, setSkillInput] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  // When entering edit mode, copy the current profile into the form.
+  useEffect(() => {
+    if (editing && profile) {
+      setForm({
+        fullName: profile.fullName || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        location: profile.location || '',
+        linkedin: profile.linkedin || '',
+        website: profile.website || '',
+        summary: profile.summary || '',
+        skills: [...(profile.skills || [])],
+      });
+    }
+  }, [editing, profile]);
+
   if (!profile) {
     return (
       <div className="card">
         <h2>2 · Extracted profile</h2>
-        <div className="empty">Abhi koi resume upload nahi hua. Upar upload karo.</div>
+        <div className="empty">No resume uploaded yet. Upload one above.</div>
       </div>
     );
   }
 
   const f = (v) => v || <span style={{ color: 'var(--muted)' }}>—</span>;
 
+  function set(key, val) {
+    setForm((prev) => ({ ...prev, [key]: val }));
+  }
+  function addSkill() {
+    const s = skillInput.trim();
+    if (s && !form.skills.includes(s)) set('skills', [...form.skills, s]);
+    setSkillInput('');
+  }
+  function removeSkill(s) {
+    set('skills', form.skills.filter((x) => x !== s));
+  }
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    try {
+      await updateProfile(profile.id, form);
+      setEditing(false);
+      onSaved?.();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // ---------- EDIT MODE ----------
+  if (editing && form) {
+    return (
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2>2 · Edit profile</h2>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-ghost" onClick={() => setEditing(false)} disabled={saving}>Cancel</button>
+            <button className="btn-primary" onClick={save} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+
+        {error && <div className="toast err">{error}</div>}
+
+        <div className="grid">
+          {FIELDS.map(([key, label]) => (
+            <div className="field" key={key}>
+              <label>{label}</label>
+              <input value={form[key]} onChange={(e) => set(key, e.target.value)} />
+            </div>
+          ))}
+        </div>
+
+        <div className="field" style={{ marginTop: 14 }}>
+          <label>Summary</label>
+          <textarea rows={3} value={form.summary} onChange={(e) => set('summary', e.target.value)} />
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <label style={labelStyle}>Skills</label>
+          <div className="chips" style={{ marginBottom: 10 }}>
+            {form.skills.map((s) => (
+              <span key={s} className="chip">
+                {s}
+                <button type="button" className="chip-x" onClick={() => removeSkill(s)} aria-label="remove">×</button>
+              </span>
+            ))}
+            {!form.skills.length && <span style={{ color: 'var(--muted)' }}>No skills — add some below</span>}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              placeholder="New skill (e.g. Python)"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
+            />
+            <button type="button" className="btn-ghost" onClick={addSkill}>+ Add</button>
+          </div>
+        </div>
+
+        <p style={{ color: 'var(--muted)', fontSize: 12, marginTop: 14 }}>
+          Note: Experience &amp; education aren't editable yet — only the fields above + skills.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------- VIEW MODE ----------
   return (
     <div className="card">
-      <h2>2 · Extracted profile</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>2 · Extracted profile</h2>
+        <button className="btn-ghost" onClick={() => setEditing(true)}>✏️ Edit</button>
+      </div>
 
       <div className="grid">
         <Field label="Full name" value={f(profile.fullName)} />
@@ -37,7 +160,7 @@ export default function ProfileCard({ profile }) {
           <div className="chips">
             {profile.skills.map((s) => <span key={s} className="chip">{s}</span>)}
           </div>
-        ) : <span style={{ color: 'var(--muted)' }}>Koi skill detect nahi hui</span>}
+        ) : <span style={{ color: 'var(--muted)' }}>No skills detected</span>}
       </div>
 
       <div style={{ marginTop: 22 }}>
@@ -48,7 +171,7 @@ export default function ProfileCard({ profile }) {
             <div className="meta">{[e.startDate, e.endDate].filter(Boolean).join(' – ')}</div>
             {e.description && <div className="desc">{e.description}</div>}
           </div>
-        )) : <span style={{ color: 'var(--muted)' }}>Experience detect nahi hua (AI mode me aayega)</span>}
+        )) : <span style={{ color: 'var(--muted)' }}>No experience detected (available in AI mode)</span>}
       </div>
 
       <div style={{ marginTop: 22 }}>
@@ -58,7 +181,7 @@ export default function ProfileCard({ profile }) {
             <div className="role">{ed.degree || 'Degree'} {ed.field && `· ${ed.field}`}</div>
             <div className="meta">{ed.school} {ed.endDate && `· ${ed.endDate}`}</div>
           </div>
-        )) : <span style={{ color: 'var(--muted)' }}>Education detect nahi hua</span>}
+        )) : <span style={{ color: 'var(--muted)' }}>No education detected</span>}
       </div>
     </div>
   );

@@ -8,9 +8,10 @@ import { getProfile, getApplications } from './api/client';
 export default function App() {
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [discovering, setDiscovering] = useState(false);
   const [error, setError] = useState(null);
 
-  // Backend se taaza data le aao.
+  // Fetch the latest data from the backend.
   const refresh = useCallback(async () => {
     try {
       const [p, apps] = await Promise.all([getProfile(), getApplications()]);
@@ -22,21 +23,33 @@ export default function App() {
     }
   }, []);
 
+  // When discovery starts, wipe the old data and enter the "discovering" state.
+  const onDiscoverStart = useCallback(() => {
+    setApplications([]);
+    setDiscovering(true);
+  }, []);
+
+  // Discovery finished — fetch the new jobs and exit the discovering state.
+  const onDiscovered = useCallback(async () => {
+    await refresh();
+    setDiscovering(false);
+  }, [refresh]);
+
   useEffect(() => { refresh(); }, [refresh]);
 
   return (
     <div className="app">
       <header>
         <h1>AutoResumeApply</h1>
-        <p>Resume upload karo → data extract hoga → dashboard pe dikhega kahan apply ho raha hai.</p>
+        <p>Upload your resume → we extract your data → the dashboard shows where you're applying.</p>
       </header>
 
       {error && <div className="toast err">{error}</div>}
 
       <UploadCard onUploaded={refresh} />
-      <ProfileCard profile={profile} />
-      <DiscoverCard profile={profile} onDiscovered={refresh} />
-      <ApplicationsTable applications={applications} />
+      <ProfileCard profile={profile} onSaved={refresh} />
+      <DiscoverCard profile={profile} onDiscoverStart={onDiscoverStart} onDiscovered={onDiscovered} />
+      <ApplicationsTable applications={applications} discovering={discovering} />
     </div>
   );
 }

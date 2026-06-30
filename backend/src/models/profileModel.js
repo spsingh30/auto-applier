@@ -1,7 +1,7 @@
-// Profile se related saari DB operations yahan. Controller seedhe Prisma ko nahi chhuta.
+// All profile-related DB operations live here. Controllers never touch Prisma directly.
 const prisma = require('../config/prisma');
 
-// Parsed data (services se aaya) -> Profile + relations create karo.
+// Parsed data (from the services) -> create Profile + relations.
 async function createFromParsed(parsed, fileMeta) {
   return prisma.profile.create({
     data: {
@@ -12,7 +12,7 @@ async function createFromParsed(parsed, fileMeta) {
       linkedin: parsed.linkedin,
       website: parsed.website,
       summary: parsed.summary,
-      skills: JSON.stringify(parsed.skills || []), // SQLite me array nahi, isliye JSON string
+      skills: JSON.stringify(parsed.skills || []), // SQLite has no array type, so a JSON string
       experiences: { create: (parsed.experiences || []).map(stripNulls) },
       educations: { create: (parsed.educations || []).map(stripNulls) },
       resume: {
@@ -32,7 +32,19 @@ async function getById(id) {
   return profile ? withParsedSkills(profile) : null;
 }
 
-// MVP single-user: sabse latest profile dikhao.
+// The user edited the profile on the dashboard — only whitelisted fields are updated.
+async function update(id, data) {
+  const ALLOWED = ['fullName', 'email', 'phone', 'location', 'linkedin', 'website', 'summary'];
+  const patch = {};
+  for (const k of ALLOWED) if (k in data) patch[k] = data[k] || null;
+  if ('skills' in data) {
+    patch.skills = JSON.stringify(Array.isArray(data.skills) ? data.skills : []);
+  }
+  const profile = await prisma.profile.update({ where: { id }, data: patch, include: relations });
+  return withParsedSkills(profile);
+}
+
+// MVP single-user: show the most recent profile.
 async function getLatest() {
   const profile = await prisma.profile.findFirst({
     orderBy: { createdAt: 'desc' },
@@ -51,7 +63,7 @@ async function list() {
 
 const relations = { experiences: true, educations: true, resume: true };
 
-// skills DB me string hai -> bahar JS array bana ke do.
+// skills is a string in the DB -> return it as a JS array to callers.
 function withParsedSkills(profile) {
   return { ...profile, skills: safeParse(profile.skills) };
 }
@@ -64,11 +76,11 @@ function safeParse(str) {
   }
 }
 
-// Prisma create me `id`/null keys na jaaye isliye saaf object.
+// Clean object so `id`/null keys don't get passed to Prisma create.
 function stripNulls(obj) {
   const out = {};
   for (const [k, v] of Object.entries(obj)) if (v !== null && v !== undefined) out[k] = v;
   return out;
 }
 
-module.exports = { createFromParsed, getById, getLatest, list };
+module.exports = { createFromParsed, getById, getLatest, list, update };

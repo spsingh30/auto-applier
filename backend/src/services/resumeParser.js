@@ -1,11 +1,11 @@
 // Raw resume text -> structured profile JSON.
-// Pehle LLM try karta hai (accurate). API key na ho to heuristic fallback.
-// LLM call OpenRouter (OpenAI-compatible /chat/completions) ke through jaata hai.
+// First it tries the LLM (accurate). If no API key is present, falls back to heuristics.
+// The LLM call goes through OpenRouter (OpenAI-compatible /chat/completions).
 const { z } = require('zod');
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// --- Output ka strict shape. LLM jo de, usko isse validate karte hain. ---
+// --- Strict shape for the output. Whatever the LLM returns is validated against this. ---
 const ProfileSchema = z.object({
   fullName: z.string().nullable().default(null),
   email: z.string().nullable().default(null),
@@ -56,7 +56,10 @@ Use exactly this shape:
 }
 
 Rules:
-- If a field is missing, use null (or [] for arrays). Do not invent data.
+- Extract BOTH directly stated info AND info that is INDIRECTLY present (inferable from the text). Do not invent anything that isn't supported by the resume.
+- "location": if there is no explicit city/country at the top, INFER it from the most recent work experience or education line (e.g. an experience "HSBC Technology, Pune, India" => location "Pune, India"). Use the most recent / current one.
+- "linkedin" / "website": fill ONLY if an actual URL is present in the text (e.g. "linkedin.com/in/..."). If the resume only shows the bare word "LinkedIn" / "Portfolio" as a hyperlink label with no visible URL, use null. NEVER output the literal word "LinkedIn" as a value.
+- If a field is genuinely missing, use null (or [] for arrays).
 - Keep dates as written in the resume (e.g. "Jan 2021", "2019").
 - "summary" = the candidate's profile/objective summary if present, else null.
 - Return raw JSON only.`;
@@ -73,7 +76,7 @@ async function parseResume(rawText) {
       const data = await parseWithLLM(rawText, apiKey);
       return { data, method: 'llm' };
     } catch (err) {
-      console.error('[resumeParser] LLM parse fail, heuristic pe gir rahe hain:', err.message);
+      console.error('[resumeParser] LLM parse failed, falling back to heuristics:', err.message);
     }
   }
 
@@ -81,7 +84,9 @@ async function parseResume(rawText) {
 }
 
 async function parseWithLLM(rawText, apiKey) {
-  const model = process.env.LLM_MODEL || 'anthropic/claude-3.5-haiku';
+  // Parsing runs only once per resume — so we can use a strong (accurate) model,
+  // the cost is negligible. You can override by setting the PARSE_MODEL env var.
+  const model = process.env.PARSE_MODEL || 'anthropic/claude-3.5-sonnet';
 
   const res = await fetch(OPENROUTER_URL, {
     method: 'POST',
@@ -92,7 +97,7 @@ async function parseWithLLM(rawText, apiKey) {
     body: JSON.stringify({
       model,
       max_tokens: 2000,
-      // JSON-only output ko nudge karne ke liye.
+      // To nudge the model toward JSON-only output.
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -109,27 +114,27 @@ async function parseWithLLM(rawText, apiKey) {
   const body = await res.json();
   const text = body?.choices?.[0]?.message?.content || '';
   const json = extractJson(text);
-  return ProfileSchema.parse(json); // Zod validate — galat shape pe yahin error.
+  return ProfileSchema.parse(json); // Zod validation — throws here on a wrong shape.
 }
 
-// LLM kabhi-kabhi ```json fence laga deta hai — usko nikaalo.
+// The LLM sometimes wraps output in a ```json fence — strip it out.
 function extractJson(text) {
   const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   const start = cleaned.indexOf('{');
   const end = cleaned.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('LLM output me JSON nahi mila');
+  if (start === -1 || end === -1) throw new Error('No JSON found in LLM output');
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
-// --- Fallback: bina LLM ke basic regex extraction. ---
-// Perfect nahi, par API key na ho tab bhi kuch to dikhe.
+// --- Fallback: basic regex extraction without the LLM. ---
+// Not perfect, but shows something even when no API key is available.
 function heuristicParse(text) {
   const email = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] || null;
   const phone =
     text.match(/(\+?\d{1,3}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}/)?.[0] || null;
   const linkedin = text.match(/(https?:\/\/)?(www\.)?linkedin\.com\/[^\s)]+/i)?.[0] || null;
 
-  // Pehli non-empty line ko naam maan lete hain (resume me aksar top pe naam hota hai).
+  // Treat the first non-empty line as the name (resumes usually have the name at the top).
   const firstLine =
     text
       .split('\n')

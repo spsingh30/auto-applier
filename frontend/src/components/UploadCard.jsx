@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { uploadResume } from '../api/client';
 
-// Resume upload — drag-drop ya click. Upload hote hi onUploaded() parent ko bataata hai.
+// Resume upload — drag-drop or click. Once uploaded, it notifies the parent via onUploaded().
 export default function UploadCard({ onUploaded }) {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);
@@ -14,7 +14,7 @@ export default function UploadCard({ onUploaded }) {
     setMsg(null);
     try {
       const { parsedBy } = await uploadResume(file);
-      setMsg({ ok: true, text: `Resume parse ho gaya (${parsedBy === 'llm' ? 'AI' : 'basic'} mode).` });
+      setMsg({ ok: true, text: `Resume parsed (${parsedBy === 'llm' ? 'AI' : 'basic'} mode).` });
       onUploaded();
     } catch (e) {
       setMsg({ ok: false, text: e.message });
@@ -38,8 +38,8 @@ export default function UploadCard({ onUploaded }) {
           handleFile(e.dataTransfer.files[0]);
         }}
       >
-        <p><strong>{busy ? 'Parse ho raha hai…' : 'Resume yahan drop karo ya click karo'}</strong></p>
-        <span>PDF, DOCX ya TXT · max 5 MB</span>
+        <p><strong>{busy ? 'Parsing…' : 'Drop your resume here or click to browse'}</strong></p>
+        <span>PDF, DOCX or TXT · max 5 MB</span>
         <input
           ref={inputRef}
           type="file"

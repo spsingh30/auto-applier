@@ -1,7 +1,7 @@
 // Verified no-login / no-captcha boards (browser-verified 2026-06-27).
-// Source: career_links verified list. Sirf ye slugs ke JSON APIs hit karte hain.
-// chime & gemini Greenhouse pe anti-bot hain BROWSER ke liye — discovery API theek chalti hai,
-// par fill-phase me inhe skip karna (note ANTI_BOT me).
+// Source: career_links verified list. We only hit the JSON APIs of these slugs.
+// chime & gemini are anti-bot on Greenhouse for the BROWSER — the discovery API works fine,
+// but skip them in the fill phase (see the ANTI_BOT note).
 
 const BOARDS = {
   greenhouse: [
@@ -21,8 +21,10 @@ const BOARDS = {
     // newly added (verified 2026-06-27)
     'cribl', 'fireworksai', 'gongio', 'groww', 'justworks', 'monzo', 'onetrust', 'orca', 'oura',
     'poshmark', 'renttherunway', 'salesloft', 'stockx', 'tide', 'tines', 'truelayer',
-    // from career_links.md (Login=No), live-verified 2026-06-27 — slugs API pe confirm
+    // from career_links.md (Login=No), live-verified 2026-06-27 — slugs confirmed on the API
     'lyft', 'purestorage', 'canonical', 'phonepe', 'coursera',
+    // batch 2 — live-verified 2026-06-29 (all returned jobs>0)
+    'faire', 'checkr', 'lithic', 'nuro', 'amperity', 'launchdarkly', 'turing', 'block', 'reltio',
   ],
   ashby: [
     'baseten', 'clerk', 'decagon', 'deel', 'elevenlabs', 'gamma', 'langchain', 'linear',
@@ -35,6 +37,8 @@ const BOARDS = {
     'abridge', 'cartesia', 'commure', 'continue', 'genmo', 'greptile', 'ideogram', 'inngest',
     'knock', 'langfuse', 'middesk', 'openevidence', 'opusclip', 'poolside', 'recraft',
     'reflectionai', 'rogo', 'saronic', 'sesame', 'standardbots', 'stytch', 'workos',
+    // batch 2 — live-verified 2026-06-29 (all returned jobs>0)
+    'replit', 'runway', 'sardine', 'tldraw', 'unstructured', 'tavus', 'speak', 'crusoe',
   ],
   workable: [
     'hotjar', 'remote', 'veriff', 'bolt', 'causaly', 'blueground', 'typeform', 'docplanner',
@@ -48,16 +52,18 @@ const BOARDS = {
     'spotify', 'voleon', 'palantir', 'metabase', 'shieldai', 'alloy',
     // career_links.md (Login=No), live-verified
     'cred',
+    // batch 2 — live-verified 2026-06-29 (all returned jobs>0)
+    'matchgroup', 'whoop', 'ro',
   ],
   smartrecruiters: [
     'Visa', 'BoschGroup', 'AveryDennison', 'PublicStorage', 'Ubisoft2', 'McDonalds', 'Skechers',
     'SquareEnix', 'TwoSigma', 'Biocon',
-    // career_links.md (Login=No), live-verified — board valid (kuch abhi 0 jobs)
+    // career_links.md (Login=No), live-verified — board valid (some currently have 0 jobs)
     'Accor', 'LVMH', 'Block', 'Atlassian', 'IKEA', 'BNPParibas',
   ],
 };
 
-// Browser fill-phase me skip (discovery API theek hai, par headless block karta hai).
+// Skip in the browser fill phase (the discovery API is fine, but headless gets blocked).
 const ANTI_BOT = new Set(['greenhouse:chime', 'greenhouse:gemini']);
 
 module.exports = { BOARDS, ANTI_BOT };

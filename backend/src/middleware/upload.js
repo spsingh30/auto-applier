@@ -1,5 +1,5 @@
-// Multer — file ko memory me buffer ke roop me leta hai (disk pe save nahi).
-// Buffer seedhe text-extractor ko chala jaata hai.
+// Multer — takes the file into memory as a buffer (does not save to disk).
+// The buffer is passed straight to the text extractor.
 const multer = require('multer');
 
 const ALLOWED = new Set([
@@ -15,7 +15,7 @@ const upload = multer({
     const ok =
       ALLOWED.has(file.mimetype) || /\.(pdf|docx|txt)$/i.test(file.originalname);
     if (ok) cb(null, true);
-    else cb(new Error('Sirf PDF, DOCX ya TXT allowed hai.'));
+    else cb(new Error('Only PDF, DOCX or TXT files are allowed.'));
   },
 });
 

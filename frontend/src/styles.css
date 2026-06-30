@@ -191,7 +191,70 @@ button.chip { font-family: inherit; }
 }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Secondary / ghost button (Edit, Cancel, + Add) */
+.btn-ghost {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--accent); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Skill chip remove (×) button */
+.chip-x {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  margin-left: 6px;
+  padding: 0;
+}
+.chip-x:hover { color: var(--danger); }
+
+/* Edit-mode form fields */
+.field input,
+.field textarea {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.field textarea { resize: vertical; }
+
 .empty { color: var(--muted); text-align: center; padding: 30px; font-size: 14px; }
+
+/* Auto-fill result modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 50;
+}
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  max-width: 760px;
+  width: 100%;
+}
 .toast {
   padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
 }
