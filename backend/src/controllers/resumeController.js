@@ -1,6 +1,8 @@
 // Resume upload -> extract -> parse -> save -> return profile.
 const { extractText } = require('../services/fileExtractor');
 const { parseResume } = require('../services/resumeParser');
+const { extractPdfLinks } = require('../services/pdfLinks');
+const { saveResume } = require('../services/fileStorage');
 const profileModel = require('../models/profileModel');
 
 // POST /api/resume/upload   (multipart/form-data, field name: "resume")
@@ -16,13 +18,26 @@ async function uploadResume(req, res, next) {
       return res.status(422).json({ error: 'Resume se text nahi nikal paaya (shayad scanned image PDF hai).' });
     }
 
-    // 2) Text -> structured profile (LLM ya heuristic)
-    const { data, method } = await parseResume(rawText);
+    // 1.5) PDF ho to hyperlink annotations nikaalo (LinkedIn/GitHub/Portfolio ka asli URL).
+    const isPdf = req.file.mimetype === 'application/pdf' || /\.pdf$/i.test(req.file.originalname);
+    const pdfUrls = isPdf ? await extractPdfLinks(req.file.buffer).catch(() => []) : [];
+
+    // 2) Text -> structured profile (LLM ya heuristic) + links backfill
+    const { data, method } = await parseResume(rawText, pdfUrls);
+
+    // 2.5) Original file disk pe save — fill phase (Puppeteer) ATS form pe attach karega.
+    let storagePath = null;
+    try {
+      storagePath = saveResume(req.file.buffer, req.file.originalname);
+    } catch (e) {
+      console.error('[resume] file disk pe save nahi hui:', e.message); // parse fir bhi chalega
+    }
 
     // 3) DB me save (Profile + experiences + educations + resume doc)
     const profile = await profileModel.createFromParsed(data, {
       fileName: req.file.originalname,
       fileType: req.file.mimetype || 'unknown',
+      storagePath,
       parseStatus: 'COMPLETED',
     });
 

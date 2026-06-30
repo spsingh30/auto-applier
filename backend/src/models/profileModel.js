@@ -10,6 +10,7 @@ async function createFromParsed(parsed, fileMeta) {
       phone: parsed.phone,
       location: parsed.location,
       linkedin: parsed.linkedin,
+      github: parsed.github,
       website: parsed.website,
       summary: parsed.summary,
       skills: JSON.stringify(parsed.skills || []), // SQLite me array nahi, isliye JSON string
@@ -19,6 +20,7 @@ async function createFromParsed(parsed, fileMeta) {
         create: {
           fileName: fileMeta.fileName,
           fileType: fileMeta.fileType,
+          storagePath: fileMeta.storagePath || null,
           parseStatus: fileMeta.parseStatus || 'COMPLETED',
         },
       },

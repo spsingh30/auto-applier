@@ -59,9 +59,24 @@ Browser me **http://localhost:5173** kholo → resume upload karo.
 | GET  | `/api/applications` | saari applications |
 | POST | `/api/applications` | nayi application add |
 | PATCH| `/api/applications/:id/status` | status update |
+| POST | `/api/discover` | ATS boards se jobs discover |
+| POST | `/api/applications/:id/apply` | **auto-fill** form (Puppeteer); body `{submit?}` |
+| GET  | `/api/applications/:id/screenshot` | bhare hue form ka screenshot |
+| GET  | `/api/apply/info` | supported ATS + submit on/off |
+
+## Auto-apply (Fill phase — Puppeteer)
+
+Discover ki hui job pe table me **Fill** dabao → backend ek browser kholta hai, ATS form
+(naam/email/phone) bhar deta hai, **resume attach** karta hai, aur **screening questions**
+ke jawaab LLM se draft karta hai. Phir **screenshot** le ke status `FILLED` kar deta hai.
+
+- `puppeteer` install hote hi Chromium khud download ho jaata hai (alag setup nahi).
+- **Default = review mode**: form bharta hai par **submit nahi** karta — tum screenshot dekho.
+- **Asli submit** do gate ke peeche (galti se spam na ho): UI/API `submit:true` **AUR** `.env` me `ALLOW_SUBMIT=true`.
+- Browser dikhe to `.env` me `PUPPETEER_HEADLESS=false` (default), background ke liye `true`.
+- Supported ATS abhi: **Greenhouse, Lever** (Ashby/Workable/SmartRecruiters = aage).
 
 ## Aage kya (next steps)
-- Profile **edit** karne ka feature (parser galti kare to user theek kare)
-- Browser **extension** — asli autofill (user ke browser me)
-- **Puppeteer crawler** — career pages se jobs scrape karke `Application` me daale
-- Auth (multi-user)
+- Baaki ATS (Ashby/Workable/SmartRecruiters) ke fill adapters
+- Select/radio/checkbox screening questions (abhi sirf text)
+- Profile **edit** feature; custom career pages (Workday); Auth (multi-user)

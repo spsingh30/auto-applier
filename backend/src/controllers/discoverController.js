@@ -4,13 +4,22 @@ const applicationModel = require('../models/applicationModel');
 const profileModel = require('../models/profileModel');
 const { suggestKeywords } = require('../services/autoapply/keywords');
 const { BOARDS } = require('../services/autoapply/boards');
+const { clearScreenshots } = require('../services/autoapply/fill/apply');
 
 // POST /api/discover
-// body (sab optional): { ats: string[], limitPerBoard: number, query: string }
+// body (sab optional): { ats: string[], limitPerBoard: number, query: string, clear: boolean }
+// clear (default true): naye jobs dhoondne se pehle purane saare jobs hata do (clean slate).
 // Note: sab boards chalane me 1-2 min lag sakta hai (polite rate-limit). ats/query se chhota karo.
 async function run(req, res, next) {
   try {
-    const { ats, limitPerBoard, query, queries } = req.body || {};
+    const { ats, limitPerBoard, query, queries, clear } = req.body || {};
+
+    // Default: nayi discovery se pehle purani saari jobs + screenshots clear.
+    let cleared = 0;
+    if (clear !== false) {
+      ({ count: cleared } = await applicationModel.deleteAll());
+      clearScreenshots();
+    }
 
     const result = await discover({
       ats: Array.isArray(ats) ? ats : undefined,
@@ -23,6 +32,7 @@ async function run(req, res, next) {
 
     res.json({
       ok: true,
+      cleared, // kitni purani jobs hatayi
       discovered: result.jobs.length,
       added,
       skipped,
@@ -30,6 +40,17 @@ async function run(req, res, next) {
       boardsFailed: result.boardsFailed,
       errors: result.errors.slice(0, 20), // pehle 20 errors hi bhejo
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// DELETE /api/applications  -> saari jobs + screenshots clear (manual clean slate)
+async function clearAll(req, res, next) {
+  try {
+    const { count } = await applicationModel.deleteAll();
+    clearScreenshots();
+    res.json({ ok: true, cleared: count });
   } catch (err) {
     next(err);
   }
@@ -52,4 +73,4 @@ async function keywords(req, res, next) {
   }
 }
 
-module.exports = { run, boards, keywords };
+module.exports = { run, boards, keywords, clearAll };

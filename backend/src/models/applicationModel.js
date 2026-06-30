@@ -12,8 +12,29 @@ async function listAll() {
   return prisma.application.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
+async function getById(id) {
+  return prisma.application.findUnique({ where: { id } });
+}
+
+// Saari applications hata do (fresh discover se pehle clean slate).
+// Returns { count } — kitni rows deleted.
+async function deleteAll() {
+  const { count } = await prisma.application.deleteMany({});
+  return { count };
+}
+
 async function create(data) {
   return prisma.application.create({ data });
+}
+
+// Location ko hamesha string|null banao — koi ATS object/array de de to bhi insert na toote.
+function toLocationString(loc) {
+  if (loc == null) return null;
+  if (typeof loc === 'string') return loc.trim() || null;
+  if (typeof loc === 'object') {
+    return loc.display || [loc.city, loc.region, loc.country].filter(Boolean).join(', ') || null;
+  }
+  return String(loc);
 }
 
 // Discovery se aaye jobs — jo jobUrl pehle se DB me nahi hai sirf wahi insert.
@@ -36,7 +57,7 @@ async function bulkCreateDiscovered(jobs) {
       jobTitle: j.jobTitle || 'Untitled',
       jobUrl: j.jobUrl,
       jobId: j.jobId || null,
-      location: j.location || null,
+      location: toLocationString(j.location), // kabhi object na jaaye (SQLite/Prisma string maangta hai)
       ats: j.ats || null,
       status: 'DISCOVERED',
     });
@@ -58,4 +79,20 @@ async function updateStatus(id, status) {
   return prisma.application.update({ where: { id }, data: patch });
 }
 
-module.exports = { listByProfile, listAll, create, updateStatus, bulkCreateDiscovered, countsByStatus };
+// Fill/apply phase ka result save karo (status + screenshot + notes/answers).
+async function saveFillResult(id, { status, screenshotPath, notes, answers, profileId }) {
+  const patch = {
+    status,
+    filledAt: new Date(),
+    screenshotPath: screenshotPath || null,
+    fillNotes: JSON.stringify({ notes: notes || [], answers: answers || [] }),
+  };
+  if (status === 'SUBMITTED') patch.appliedAt = new Date();
+  if (profileId) patch.profileId = profileId; // apply karte time profile se jod do
+  return prisma.application.update({ where: { id }, data: patch });
+}
+
+module.exports = {
+  listByProfile, listAll, getById, create, updateStatus,
+  bulkCreateDiscovered, countsByStatus, saveFillResult, deleteAll,
+};

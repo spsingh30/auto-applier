@@ -62,6 +62,7 @@ export default function DiscoverCard({ profile, onDiscovered }) {
         limitPerBoard: Number(limit),
         queries: picked, // selected keywords
         query: query.trim(), // extra manual keyword (optional)
+        clear: true, // nayi search se pehle purani saari jobs hata do (clean slate)
       });
       setResult(r);
       onDiscovered?.();
@@ -81,6 +82,8 @@ export default function DiscoverCard({ profile, onDiscovered }) {
       <h2>0 · Jobs discover karo</h2>
       <p style={{ color: 'var(--muted)', marginTop: -6 }}>
         Verified ATS boards (no login · no captcha) se open jobs nikaal ke neeche table me daalta hai.
+        <br />
+        <strong>Note:</strong> har nayi search se pehle purani saari jobs clear ho jaati hain (clean slate).
       </p>
 
       {error && <div className="toast err">{error}</div>}
@@ -156,7 +159,8 @@ export default function DiscoverCard({ profile, onDiscovered }) {
 
       {result && (
         <div className="toast ok" style={{ marginTop: 12 }}>
-          ✅ {result.discovered} jobs mile · {result.added} naye add · {result.skipped} pehle se the ·{' '}
+          ✅ {result.cleared ? `${result.cleared} purani jobs clear · ` : ''}
+          {result.discovered} jobs mile · {result.added} naye add ·{' '}
           {result.boardsHit} boards OK{result.boardsFailed ? `, ${result.boardsFailed} fail` : ''}
         </div>
       )}

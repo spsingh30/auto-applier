@@ -17,6 +17,7 @@ model Profile {
   phone     String?
   location  String?
   linkedin  String?
+  github    String?
   website   String?
   summary   String?
   skills    String?  // JSON string array (SQLite native array support nahi karta)
@@ -58,6 +59,7 @@ model ResumeDocument {
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   fileName    String
   fileType    String
+  storagePath String?  // disk pe saved file ka path — fill phase me ATS form pe attach karne ke liye
   parseStatus String   @default("PENDING") // PENDING | COMPLETED | FAILED
   createdAt   DateTime @default(now())
 }
@@ -78,4 +80,9 @@ model Application {
   status    String    @default("PENDING") // DISCOVERED | PENDING | FILLED | SUBMITTED | FAILED
   appliedAt DateTime?
   createdAt DateTime  @default(now())
+
+  // --- Fill/apply phase (Puppeteer) ---
+  screenshotPath String?   // review ke liye bhari hui form ka screenshot
+  fillNotes      String?   // JSON: { filled:[], skipped:[], answers:{}, error? } — debugging/review
+  filledAt       DateTime?
 }

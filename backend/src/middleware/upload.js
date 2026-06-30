@@ -1,5 +1,6 @@
-// Multer — file ko memory me buffer ke roop me leta hai (disk pe save nahi).
-// Buffer seedhe text-extractor ko chala jaata hai.
+// Multer — file ko memory me buffer ke roop me leta hai.
+// Buffer text-extractor ko jaata hai; saath hi controller ise uploads/ me disk pe save
+// karta hai taaki fill phase (Puppeteer) us file ko ATS form pe attach kar sake.
 const multer = require('multer');
 
 const ALLOWED = new Set([

@@ -91,9 +91,25 @@ async function fromWorkable(slug) {
     jobTitle: j.title,
     jobUrl: j.url || `https://apply.workable.com/${slug}/j/${j.shortcode}/`,
     jobId: j.shortcode || j.id || null,
-    location: [j.city, j.country].filter(Boolean).join(', ') || j.location || null,
+    // Workable v3 me `location` ek nested object hota hai ({display, city, region, country}),
+    // top-level j.city/j.country nahi. Object ko string me badlo (warna Prisma 500 deta hai).
+    location: workableLocation(j),
     ats: 'workable',
   }));
+}
+
+// Workable location ko string me normalize karo (string/object/khaali — sab handle).
+function workableLocation(j) {
+  const loc = j.location;
+  if (typeof loc === 'string') return loc.trim() || null;
+  if (loc && typeof loc === 'object') {
+    return (
+      loc.display ||
+      [loc.city, loc.region, loc.country].filter(Boolean).join(', ') ||
+      null
+    );
+  }
+  return [j.city, j.country].filter(Boolean).join(', ') || null;
 }
 
 const FETCHERS = {

@@ -12,6 +12,7 @@ const ProfileSchema = z.object({
   phone: z.string().nullable().default(null),
   location: z.string().nullable().default(null),
   linkedin: z.string().nullable().default(null),
+  github: z.string().nullable().default(null),
   website: z.string().nullable().default(null),
   summary: z.string().nullable().default(null),
   skills: z.array(z.string()).default([]),
@@ -48,6 +49,7 @@ Use exactly this shape:
   "phone": string|null,
   "location": string|null,
   "linkedin": string|null,
+  "github": string|null,
   "website": string|null,
   "summary": string|null,
   "skills": string[],
@@ -65,19 +67,84 @@ Rules:
  * @param {string} rawText
  * @returns {Promise<{ data: object, method: 'llm'|'heuristic' }>}
  */
-async function parseResume(rawText) {
+/**
+ * @param {string} rawText
+ * @param {string[]} [pdfUrls]  - PDF annotation se mile URLs (sabse reliable for links)
+ */
+async function parseResume(rawText, pdfUrls = []) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (apiKey) {
     try {
       const data = await parseWithLLM(rawText, apiKey);
-      return { data, method: 'llm' };
+      // LLM aksar exact URLs miss karta hai — PDF annotations + regex se pakka karo.
+      return { data: backfillLinks(data, rawText, pdfUrls), method: 'llm' };
     } catch (err) {
       console.error('[resumeParser] LLM parse fail, heuristic pe gir rahe hain:', err.message);
     }
   }
 
-  return { data: heuristicParse(rawText), method: 'heuristic' };
+  return { data: backfillLinks(heuristicParse(rawText), rawText, pdfUrls), method: 'heuristic' };
+}
+
+// Annotation/extra URLs ko linkedin/github/website me classify karo.
+function classifyUrls(urls, fullName) {
+  const tidy = (u) => u.replace(/[.,;)\]]+$/, '').replace(/\/$/, '');
+  const list = (urls || []).filter((u) => u && !/^mailto:/i.test(u));
+  const linkedin = list.find((u) => /linkedin\.com\/(in|pub)\//i.test(u));
+  // GitHub: profile (github.com/user) prefer, repo (.../repo.git) nahi.
+  const github =
+    list.find((u) => /github\.com\/[^/]+\/?$/i.test(u) && !/\.git$/i.test(u)) ||
+    list.find((u) => /github\.com/i.test(u) && !/\.git$/i.test(u));
+  const nameKey = (fullName || '').toLowerCase().split(/\s+/)[0] || '';
+  const sites = list.filter((u) => !/linkedin\.com|github\.com|twitter\.com|x\.com|facebook|instagram/i.test(u));
+  const website =
+    (nameKey && sites.find((u) => u.toLowerCase().includes(nameKey))) ||
+    sites.find((u) => /netlify\.app|vercel\.app|github\.io|\.dev|\.me|portfolio/i.test(u)) ||
+    sites[0];
+  return {
+    linkedin: linkedin ? tidy(linkedin) : null,
+    github: github ? tidy(github) : null,
+    website: website ? tidy(website) : null,
+  };
+}
+
+// Raw resume text se LinkedIn/GitHub/website URLs nikaalo (LLM jo miss kare wo bharo).
+function extractLinks(text) {
+  const t = text || '';
+  const grab = (re) => {
+    const m = t.match(re);
+    if (!m) return null;
+    let url = m[0].replace(/[.,;)\]]+$/, ''); // trailing punctuation hatao
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return url;
+  };
+  const linkedin = grab(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/[A-Za-z0-9_%-]+\/?/i);
+  const github = grab(/(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9_-]+\/?/i);
+
+  // Website: koi bhi URL jo social/email na ho. Portfolio domains (netlify/vercel/github.io/.dev) prefer.
+  let website = grab(
+    /(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9-]+\.(?:netlify\.app|vercel\.app|github\.io|web\.app|dev|me|page|portfolio)[A-Za-z0-9./_-]*/i
+  );
+  if (!website) {
+    const urls = t.match(/(?:https?:\/\/)[A-Za-z0-9.-]+\.[A-Za-z]{2,}[A-Za-z0-9./_#?=&%-]*/gi) || [];
+    const skip = /linkedin\.com|github\.com|twitter\.com|x\.com|facebook\.com|instagram\.com|mailto:|gmail\.com|gravatar/i;
+    const cand = urls.find((u) => !skip.test(u));
+    if (cand) website = cand.replace(/[.,;)\]]+$/, '');
+  }
+  return { linkedin, github, website };
+}
+
+// Missing links bhar do — priority: PDF annotations > text-regex > LLM-guess.
+function backfillLinks(data, rawText, pdfUrls = []) {
+  const ann = classifyUrls(pdfUrls, data.fullName);
+  const txt = extractLinks(rawText);
+  return {
+    ...data,
+    linkedin: ann.linkedin || data.linkedin || txt.linkedin || null,
+    github: ann.github || data.github || txt.github || null,
+    website: ann.website || data.website || txt.website || null,
+  };
 }
 
 async function parseWithLLM(rawText, apiKey) {

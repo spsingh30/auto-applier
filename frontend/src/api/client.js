@@ -22,6 +22,13 @@ export async function getApplications() {
   return (await res.json()).applications;
 }
 
+// Saari jobs clear karo (clean slate). Returns { cleared }.
+export async function clearApplications() {
+  const res = await fetch(`${BASE}/applications`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Jobs clear nahi hui');
+  return res.json();
+}
+
 // Available ATS boards ka summary.
 export async function getBoards() {
   const res = await fetch(`${BASE}/discover/boards`);
@@ -45,4 +52,27 @@ export async function discoverJobs(opts = {}) {
   });
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Discovery fail hui');
   return res.json();
+}
+
+// Apply phase info: kaunse ATS supported + submit on/off.
+export async function getApplyInfo() {
+  const res = await fetch(`${BASE}/apply/info`);
+  if (!res.ok) throw new Error('Apply info load nahi hua');
+  return res.json();
+}
+
+// Ek job pe apply form bharo (Puppeteer). submit:true tabhi submit (env ALLOW_SUBMIT bhi chahiye).
+export async function applyToJob(id, { submit = false } = {}) {
+  const res = await fetch(`${BASE}/applications/${id}/apply`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ submit }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Apply fail hui');
+  return res.json();
+}
+
+// Bhare hue form ke screenshot ka URL (review ke liye).
+export function screenshotUrl(id) {
+  return `${BASE}/applications/${id}/screenshot`;
 }
