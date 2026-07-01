@@ -1,10 +1,10 @@
-// Fill orchestrator — ek discovered job pe apply form bharta hai (Puppeteer).
+// Fill orchestrator — fills the apply form for a discovered job (Puppeteer).
 //
-// Default = REVIEW MODE: form bhar ke screenshot le leta hai, SUBMIT NAHI karta.
-// User screenshot dekhe, phir chahe to submit kare. Asli submit do gates ke peeche:
-//   1) caller explicitly submit:true bheje, AUR
-//   2) env ALLOW_SUBMIT=true ho.
-// Ye design jaan-bujh ke hai — galti se real companies ko spam na ho.
+// Default = REVIEW MODE: fills the form and takes a screenshot, does NOT SUBMIT.
+// The user reviews the screenshot, then submits if they want. A real submit is behind two gates:
+//   1) the caller explicitly passes submit:true, AND
+//   2) env ALLOW_SUBMIT=true is set.
+// This design is intentional — so we don't accidentally spam real companies.
 const fs = require('fs');
 const path = require('path');
 const { newPage } = require('./browser');
@@ -16,7 +16,7 @@ function ensureShots() {
   if (!fs.existsSync(SHOTS_DIR)) fs.mkdirSync(SHOTS_DIR, { recursive: true });
 }
 
-// Jobs clear karte time purane filled-form screenshots bhi hata do (orphan na rahein).
+// When clearing jobs, also remove old filled-form screenshots (so no orphans remain).
 function clearScreenshots() {
   try {
     if (!fs.existsSync(SHOTS_DIR)) return;
@@ -24,7 +24,7 @@ function clearScreenshots() {
       if (f.endsWith('.png')) fs.unlinkSync(path.join(SHOTS_DIR, f));
     }
   } catch (e) {
-    console.error('[apply] screenshot cleanup fail:', e.message);
+    console.error('[apply] screenshot cleanup failed:', e.message);
   }
 }
 
@@ -36,13 +36,14 @@ function submitAllowed() {
  * @param {object} args
  * @param {object} args.application - DB application row ({ id, company, jobTitle, jobUrl, ats, ... })
  * @param {object} args.profile     - profileModel.getLatest() (skills/experiences included)
- * @param {string|null} args.resumePath - disk pe resume file ka path (ho to attach hoga)
- * @param {boolean} [args.submit]   - true + ALLOW_SUBMIT=true tabhi actual submit
+ * @param {string|null} args.resumePath - path to the resume file on disk (attached if present)
+ * @param {boolean} [args.submit]   - actual submit only when true + ALLOW_SUBMIT=true
  * @returns {Promise<{ status, screenshotPath, notes, answers, submitted, error? }>}
  */
-async function applyToJob({ application, profile, resumePath, submit = false }) {
+async function applyToJob({ application, profile, resumePath, prefs = {}, submit = false }) {
   const job = {
     jobUrl: application.jobUrl,
+    jobId: application.jobId,
     company: application.company,
     jobTitle: application.jobTitle,
     location: application.location,
@@ -53,7 +54,7 @@ async function applyToJob({ application, profile, resumePath, submit = false }) 
     return {
       status: 'FAILED',
       screenshotPath: null,
-      notes: [`is ATS ("${application.ats}") ke liye adapter nahi. Supported: ${supportedATS().join(', ')}`],
+      notes: [`no adapter for this ATS ("${application.ats}"). Supported: ${supportedATS().join(', ')}`],
       answers: [],
       submitted: false,
       error: 'unsupported_ats',
@@ -72,7 +73,7 @@ async function applyToJob({ application, profile, resumePath, submit = false }) 
   let error;
 
   try {
-    const res = await adapter.fill(page, { profile, job, resumePath });
+    const res = await adapter.fill(page, { profile, job, resumePath, prefs });
     notes.push(...(res.notes || []));
     answers = res.answers || [];
 
@@ -81,9 +82,9 @@ async function applyToJob({ application, profile, resumePath, submit = false }) 
       submitted = await adapter.submit(page, notes);
       status = submitted ? 'SUBMITTED' : 'FILLED';
     } else if (submit && !submitAllowed()) {
-      notes.push('submit skip: ALLOW_SUBMIT=true env me set nahi hai (safety). Review mode me chhoda.');
+      notes.push('submit skipped: ALLOW_SUBMIT=true is not set in env (safety). Left in review mode.');
     } else {
-      notes.push('review mode: form bhara, submit nahi kiya. Screenshot dekho.');
+      notes.push('review mode: form filled, not submitted. Check the screenshot.');
     }
   } catch (e) {
     status = 'FAILED';
@@ -91,20 +92,20 @@ async function applyToJob({ application, profile, resumePath, submit = false }) 
     notes.push(`apply error: ${e.message}`);
   }
 
-  // Screenshot hamesha lo (review/debug). Pehle thoda settle hone do
-  // (resume "analyzing", dynamic fields, reflow) — warna aadha-rendered shot aata hai.
+  // Always take a screenshot (review/debug). Let it settle a bit first
+  // (resume "analyzing", dynamic fields, reflow) — otherwise we get a half-rendered shot.
   let screenshotPath = null;
   try {
-    await new Promise((r) => setTimeout(r, 2500));
+    await new Promise((r) => setTimeout(r, 1200));
     await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
     const file = path.join(SHOTS_DIR, `${application.id}.png`);
     await page.screenshot({ path: file, fullPage: true });
     screenshotPath = file;
   } catch (e) {
-    notes.push(`screenshot fail: ${e.message}`);
+    notes.push(`screenshot failed: ${e.message}`);
   }
 
-  // Headed mode me page khula chhod sakte the, par background apply ke liye band kar dete hain.
+  // In headed mode we could leave the page open, but for background apply we close it.
   await page.close().catch(() => {});
 
   return { status, screenshotPath, notes, answers, submitted, error };

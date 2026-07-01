@@ -1,8 +1,8 @@
 // Verified no-login / no-captcha boards.
 // Source: career_links verified list + verified-companies.md (2026-06-30).
-// Sirf ye slugs ke JSON APIs hit karte hain.
-// chime & gemini Greenhouse pe anti-bot hain BROWSER ke liye — discovery API theek chalti hai,
-// par fill-phase me inhe skip karna (note ANTI_BOT me).
+// We only hit the JSON APIs for these slugs.
+// chime & gemini on Greenhouse are anti-bot for the BROWSER — the discovery API works fine,
+// but skip them in the fill phase (see ANTI_BOT below).
 
 const BOARDS = {
   greenhouse: [
@@ -75,7 +75,7 @@ const BOARDS = {
   ],
 };
 
-// Browser fill-phase me skip (discovery API theek hai, par headless block karta hai).
+// Skip in the browser fill phase (discovery API is fine, but headless gets blocked).
 const ANTI_BOT = new Set(['greenhouse:chime', 'greenhouse:gemini']);
 
 module.exports = { BOARDS, ANTI_BOT };

@@ -1,13 +1,13 @@
-// Resume file (PDF/DOCX/TXT) ka raw text nikalta hai.
-// LLM ko bhejne se pehle ye step zaroori hai — LLM text padhta hai, binary nahi.
+// Extracts the raw text from a resume file (PDF/DOCX/TXT).
+// This step is required before sending to the LLM — the LLM reads text, not binary.
 
-// Note: pdf-parse ko seedhe lib se require karte hain taaki uska
-// debug-mode test-file bug trigger na ho.
+// Note: require pdf-parse directly from its lib so that its
+// debug-mode test-file bug isn't triggered.
 const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 const mammoth = require('mammoth');
 
 /**
- * @param {Buffer} buffer  - uploaded file ka raw buffer
+ * @param {Buffer} buffer  - raw buffer of the uploaded file
  * @param {string} mimetype
  * @param {string} originalName
  * @returns {Promise<string>} extracted plain text
@@ -35,10 +35,10 @@ async function extractText(buffer, mimetype, originalName = '') {
     return cleanup(buffer.toString('utf-8'));
   }
 
-  throw new Error(`Unsupported file type: ${mimetype || originalName}. PDF, DOCX ya TXT do.`);
+  throw new Error(`Unsupported file type: ${mimetype || originalName}. Please provide PDF, DOCX, or TXT.`);
 }
 
-// Extra blank lines aur trailing spaces hata do — LLM ke liye saaf text.
+// Remove extra blank lines and trailing spaces — clean text for the LLM.
 function cleanup(text) {
   return (text || '')
     .replace(/\r/g, '')

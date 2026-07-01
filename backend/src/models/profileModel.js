@@ -1,7 +1,7 @@
-// Profile se related saari DB operations yahan. Controller seedhe Prisma ko nahi chhuta.
+// All profile-related DB operations live here. The controller never touches Prisma directly.
 const prisma = require('../config/prisma');
 
-// Parsed data (services se aaya) -> Profile + relations create karo.
+// Parsed data (from services) -> create Profile + relations.
 async function createFromParsed(parsed, fileMeta) {
   return prisma.profile.create({
     data: {
@@ -13,7 +13,7 @@ async function createFromParsed(parsed, fileMeta) {
       github: parsed.github,
       website: parsed.website,
       summary: parsed.summary,
-      skills: JSON.stringify(parsed.skills || []), // SQLite me array nahi, isliye JSON string
+      skills: JSON.stringify(parsed.skills || []), // SQLite has no array type, so store as a JSON string
       experiences: { create: (parsed.experiences || []).map(stripNulls) },
       educations: { create: (parsed.educations || []).map(stripNulls) },
       resume: {
@@ -34,7 +34,7 @@ async function getById(id) {
   return profile ? withParsedSkills(profile) : null;
 }
 
-// MVP single-user: sabse latest profile dikhao.
+// MVP single-user: show the most recent profile.
 async function getLatest() {
   const profile = await prisma.profile.findFirst({
     orderBy: { createdAt: 'desc' },
@@ -53,7 +53,7 @@ async function list() {
 
 const relations = { experiences: true, educations: true, resume: true };
 
-// skills DB me string hai -> bahar JS array bana ke do.
+// skills is a string in the DB -> expose it as a JS array outside.
 function withParsedSkills(profile) {
   return { ...profile, skills: safeParse(profile.skills) };
 }
@@ -66,7 +66,7 @@ function safeParse(str) {
   }
 }
 
-// Prisma create me `id`/null keys na jaaye isliye saaf object.
+// Clean object so `id`/null keys don't get passed into Prisma create.
 function stripNulls(obj) {
   const out = {};
   for (const [k, v] of Object.entries(obj)) if (v !== null && v !== undefined) out[k] = v;

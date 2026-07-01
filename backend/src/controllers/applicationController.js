@@ -1,8 +1,8 @@
-// Applications — dashboard ka "kahan apply kar rahe hain" section.
+// Applications — the dashboard's "where are we applying" section.
 const applicationModel = require('../models/applicationModel');
 const profileModel = require('../models/profileModel');
 
-// GET /api/applications  -> saari applications
+// GET /api/applications  -> all applications
 async function list(req, res, next) {
   try {
     const applications = await applicationModel.listAll();
@@ -12,19 +12,19 @@ async function list(req, res, next) {
   }
 }
 
-// POST /api/applications  -> nayi application add (abhi manual; baad me extension/crawler karega)
+// POST /api/applications  -> add a new application (manual for now; extension/crawler will do it later)
 async function create(req, res, next) {
   try {
     let { profileId, company, jobTitle, jobUrl, ats, status } = req.body;
 
     if (!company || !jobTitle) {
-      return res.status(400).json({ error: 'company aur jobTitle zaroori hain.' });
+      return res.status(400).json({ error: 'company and jobTitle are required.' });
     }
 
-    // profileId na aaye to latest profile se jod do.
+    // If no profileId is provided, attach it to the latest profile.
     if (!profileId) {
       const latest = await profileModel.getLatest();
-      if (!latest) return res.status(400).json({ error: 'Pehle resume upload karo.' });
+      if (!latest) return res.status(400).json({ error: 'Please upload a resume first.' });
       profileId = latest.id;
     }
 
@@ -49,7 +49,7 @@ async function updateStatus(req, res, next) {
     const { status } = req.body;
     const allowed = ['PENDING', 'FILLED', 'SUBMITTED', 'FAILED'];
     if (!allowed.includes(status)) {
-      return res.status(400).json({ error: `status in me se ho: ${allowed.join(', ')}` });
+      return res.status(400).json({ error: `status must be one of: ${allowed.join(', ')}` });
     }
     const application = await applicationModel.updateStatus(req.params.id, status);
     res.json({ application });

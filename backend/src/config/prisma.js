@@ -1,4 +1,4 @@
-// Ek hi PrismaClient instance puri app me share hota hai (best practice).
+// A single PrismaClient instance is shared across the whole app (best practice).
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();

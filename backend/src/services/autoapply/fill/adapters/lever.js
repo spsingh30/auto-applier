@@ -1,16 +1,16 @@
 // Lever application form adapter.
 // Posting page: https://jobs.lever.co/{slug}/{id}
-// Apply form:   https://jobs.lever.co/{slug}/{id}/apply   (yahan fields hote hain)
-// Fields name-based: name, email, phone, org (company), urls[LinkedIn], resume file.
-// Custom cards: .application-question me inputs/textarea (name="cards[...][...]").
+// Apply form:   https://jobs.lever.co/{slug}/{id}/apply   (the fields live here)
+// Fields are name-based: name, email, phone, org (company), urls[LinkedIn], resume file.
+// Custom cards: inputs/textarea inside .application-question (name="cards[...][...]").
 const { typeInto, attachFile, dismissBanners } = require('../formUtils');
 const { fillRemaining } = require('../screeningFill');
 
 async function fill(page, ctx) {
-  const { profile, job, resumePath } = ctx;
+  const { profile, job, resumePath, prefs } = ctx;
   const notes = [];
 
-  // Apply page pe jao (posting URL ke aage /apply).
+  // Go to the apply page (posting URL with /apply appended).
   const applyUrl = /\/apply\/?$/.test(job.jobUrl) ? job.jobUrl : `${job.jobUrl.replace(/\/$/, '')}/apply`;
   await page.goto(applyUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
   await dismissBanners(page);
@@ -26,9 +26,9 @@ async function fill(page, ctx) {
 
   notes.push((await attachFile(page, ['input[name="resume"]', 'input[type="file"]'], resumePath, 'resume')).note);
 
-  // Baaki sab fields (text/select/radio/checkbox) AI se bharo — "fill fully".
+  // Fill all remaining fields (text/select/radio/checkbox) via the AI — "fill fully".
   await new Promise((r) => setTimeout(r, 800));
-  const answers = await fillRemaining(page, profile, job, notes);
+  const answers = await fillRemaining(page, profile, job, notes, prefs);
   return { notes, answers };
 }
 
@@ -38,12 +38,12 @@ async function submit(page, notes) {
     const btn = await page.$(s).catch(() => null);
     if (btn) {
       await btn.click().catch(() => {});
-      notes.push(`submit: "${s}" dabaya`);
+      notes.push(`submit: clicked "${s}"`);
       await page.waitForNetworkIdle({ idleTime: 1500, timeout: 15000 }).catch(() => {});
       return true;
     }
   }
-  notes.push('submit: button nahi mila');
+  notes.push('submit: button not found');
   return false;
 }
 

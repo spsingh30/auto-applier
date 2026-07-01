@@ -1,12 +1,12 @@
-// ATS -> adapter registry. job.ats se sahi adapter chuna jaata hai.
-// Naye ATS support karne ke liye yahan ek line add karo (greenhouse/lever template copy karke).
+// ATS -> adapter registry. The right adapter is chosen from job.ats.
+// To support a new ATS, add a line here (copy the greenhouse/lever template).
 const greenhouse = require('./greenhouse');
 const lever = require('./lever');
 
 const ADAPTERS = {
   greenhouse,
   lever,
-  // ashby, workable, smartrecruiters — TODO (in ke form alag; fill template same).
+  // ashby, workable, smartrecruiters — TODO (their forms differ; fill template is the same).
 };
 
 function getAdapter(ats) {

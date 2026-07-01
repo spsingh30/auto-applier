@@ -1,7 +1,7 @@
-// Puppeteer browser launcher — fill phase ka core.
-// Ek browser instance reuse hota hai (har apply pe naya launch costly hai).
-// Default HEADED (headless:false) — review mode me user dekh sake form bhar raha hai.
-// Headless chahiye to env: PUPPETEER_HEADLESS=true.
+// Puppeteer browser launcher — the core of the fill phase.
+// A single browser instance is reused (launching a new one per apply is costly).
+// Default HEADED (headless:false) — so in review mode the user can watch the form being filled.
+// For headless, set env: PUPPETEER_HEADLESS=true.
 const puppeteer = require('puppeteer');
 
 let browserPromise = null;
@@ -14,7 +14,7 @@ async function getBrowser() {
   if (browserPromise) {
     const b = await browserPromise;
     if (b.connected) return b;
-    browserPromise = null; // mar gaya tha — naya launch
+    browserPromise = null; // it had died — launch a new one
   }
 
   browserPromise = puppeteer.launch({
@@ -26,7 +26,7 @@ async function getBrowser() {
   return browserPromise;
 }
 
-// Naya page (tab) banao, polite UA ke saath.
+// Create a new page (tab) with a polite UA.
 async function newPage() {
   const browser = await getBrowser();
   const page = await browser.newPage();

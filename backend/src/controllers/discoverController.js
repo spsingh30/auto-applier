@@ -1,4 +1,4 @@
-// Job discovery — verified ATS boards se open jobs nikaal ke DB me daalta hai.
+// Job discovery — pulls open jobs from verified ATS boards and stores them in the DB.
 const { discover } = require('../services/autoapply/discover');
 const applicationModel = require('../models/applicationModel');
 const profileModel = require('../models/profileModel');
@@ -7,14 +7,14 @@ const { BOARDS } = require('../services/autoapply/boards');
 const { clearScreenshots } = require('../services/autoapply/fill/apply');
 
 // POST /api/discover
-// body (sab optional): { ats: string[], limitPerBoard: number, query: string, clear: boolean }
-// clear (default true): naye jobs dhoondne se pehle purane saare jobs hata do (clean slate).
-// Note: sab boards chalane me 1-2 min lag sakta hai (polite rate-limit). ats/query se chhota karo.
+// body (all optional): { ats: string[], limitPerBoard: number, query: string, clear: boolean }
+// clear (default true): remove all old jobs before discovering new ones (clean slate).
+// Note: running all boards can take 1-2 min (polite rate-limit). Narrow it down with ats/query.
 async function run(req, res, next) {
   try {
     const { ats, limitPerBoard, query, queries, clear } = req.body || {};
 
-    // Default: nayi discovery se pehle purani saari jobs + screenshots clear.
+    // Default: clear all old jobs + screenshots before a new discovery.
     let cleared = 0;
     if (clear !== false) {
       ({ count: cleared } = await applicationModel.deleteAll());
@@ -32,20 +32,20 @@ async function run(req, res, next) {
 
     res.json({
       ok: true,
-      cleared, // kitni purani jobs hatayi
+      cleared, // how many old jobs were removed
       discovered: result.jobs.length,
       added,
       skipped,
       boardsHit: result.boardsHit,
       boardsFailed: result.boardsFailed,
-      errors: result.errors.slice(0, 20), // pehle 20 errors hi bhejo
+      errors: result.errors.slice(0, 20), // send only the first 20 errors
     });
   } catch (err) {
     next(err);
   }
 }
 
-// DELETE /api/applications  -> saari jobs + screenshots clear (manual clean slate)
+// DELETE /api/applications  -> clear all jobs + screenshots (manual clean slate)
 async function clearAll(req, res, next) {
   try {
     const { count } = await applicationModel.deleteAll();
@@ -56,13 +56,13 @@ async function clearAll(req, res, next) {
   }
 }
 
-// GET /api/discover/boards  -> kaunse ATS + kitne slugs available hain
+// GET /api/discover/boards  -> which ATS + how many slugs are available
 function boards(req, res) {
   const summary = Object.fromEntries(Object.entries(BOARDS).map(([k, v]) => [k, v.length]));
   res.json({ ats: summary, total: Object.values(summary).reduce((a, b) => a + b, 0) });
 }
 
-// GET /api/discover/keywords  -> latest resume se suggested job keywords
+// GET /api/discover/keywords  -> suggested job keywords from the latest resume
 async function keywords(req, res, next) {
   try {
     const profile = await profileModel.getLatest();

@@ -1,4 +1,4 @@
-// "Hum kahan apply kar rahe hain" — Application records ki DB layer.
+// "Where are we applying" — DB layer for application records.
 const prisma = require('../config/prisma');
 
 async function listByProfile(profileId) {
@@ -16,8 +16,8 @@ async function getById(id) {
   return prisma.application.findUnique({ where: { id } });
 }
 
-// Saari applications hata do (fresh discover se pehle clean slate).
-// Returns { count } — kitni rows deleted.
+// Delete all applications (clean slate before a fresh discover).
+// Returns { count } — how many rows were deleted.
 async function deleteAll() {
   const { count } = await prisma.application.deleteMany({});
   return { count };
@@ -27,7 +27,7 @@ async function create(data) {
   return prisma.application.create({ data });
 }
 
-// Location ko hamesha string|null banao — koi ATS object/array de de to bhi insert na toote.
+// Always coerce location to string|null — so the insert won't break even if an ATS returns an object/array.
 function toLocationString(loc) {
   if (loc == null) return null;
   if (typeof loc === 'string') return loc.trim() || null;
@@ -37,7 +37,7 @@ function toLocationString(loc) {
   return String(loc);
 }
 
-// Discovery se aaye jobs — jo jobUrl pehle se DB me nahi hai sirf wahi insert.
+// Jobs from discovery — only insert those whose jobUrl isn't already in the DB.
 // Returns { added, skipped }.
 async function bulkCreateDiscovered(jobs) {
   const urls = jobs.map((j) => j.jobUrl).filter(Boolean);
@@ -47,7 +47,7 @@ async function bulkCreateDiscovered(jobs) {
   });
   const seen = new Set(existing.map((e) => e.jobUrl));
 
-  // Same batch ke andar bhi duplicate jobUrl ho sakta hai — dedup.
+  // The same batch can also contain a duplicate jobUrl — dedup.
   const fresh = [];
   for (const j of jobs) {
     if (!j.jobUrl || seen.has(j.jobUrl)) continue;
@@ -57,7 +57,7 @@ async function bulkCreateDiscovered(jobs) {
       jobTitle: j.jobTitle || 'Untitled',
       jobUrl: j.jobUrl,
       jobId: j.jobId || null,
-      location: toLocationString(j.location), // kabhi object na jaaye (SQLite/Prisma string maangta hai)
+      location: toLocationString(j.location), // never pass an object (SQLite/Prisma expects a string)
       ats: j.ats || null,
       status: 'DISCOVERED',
     });
@@ -67,7 +67,7 @@ async function bulkCreateDiscovered(jobs) {
   return { added: fresh.length, skipped: jobs.length - fresh.length };
 }
 
-// Status-wise counts — dashboard summary ke liye.
+// Counts by status — for the dashboard summary.
 async function countsByStatus() {
   const rows = await prisma.application.groupBy({ by: ['status'], _count: { status: true } });
   return rows.reduce((acc, r) => ({ ...acc, [r.status]: r._count.status }), {});
@@ -79,7 +79,7 @@ async function updateStatus(id, status) {
   return prisma.application.update({ where: { id }, data: patch });
 }
 
-// Fill/apply phase ka result save karo (status + screenshot + notes/answers).
+// Save the result of the fill/apply phase (status + screenshot + notes/answers).
 async function saveFillResult(id, { status, screenshotPath, notes, answers, profileId }) {
   const patch = {
     status,
@@ -88,7 +88,7 @@ async function saveFillResult(id, { status, screenshotPath, notes, answers, prof
     fillNotes: JSON.stringify({ notes: notes || [], answers: answers || [] }),
   };
   if (status === 'SUBMITTED') patch.appliedAt = new Date();
-  if (profileId) patch.profileId = profileId; // apply karte time profile se jod do
+  if (profileId) patch.profileId = profileId; // link to the profile at apply time
   return prisma.application.update({ where: { id }, data: patch });
 }
 

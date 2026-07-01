@@ -3,6 +3,7 @@ import UploadCard from './components/UploadCard';
 import ProfileCard from './components/ProfileCard';
 import ApplicationsTable from './components/ApplicationsTable';
 import DiscoverCard from './components/DiscoverCard';
+import PreferencesCard from './components/PreferencesCard';
 import { getProfile, getApplications } from './api/client';
 
 export default function App() {
@@ -10,7 +11,7 @@ export default function App() {
   const [applications, setApplications] = useState([]);
   const [error, setError] = useState(null);
 
-  // Backend se taaza data le aao.
+  // Fetch fresh data from the backend.
   const refresh = useCallback(async () => {
     try {
       const [p, apps] = await Promise.all([getProfile(), getApplications()]);
@@ -28,13 +29,14 @@ export default function App() {
     <div className="app">
       <header>
         <h1>AutoResumeApply</h1>
-        <p>Resume upload karo → data extract hoga → dashboard pe dikhega kahan apply ho raha hai.</p>
+        <p>Upload your resume → data gets extracted → the dashboard shows where applications are being sent.</p>
       </header>
 
       {error && <div className="toast err">{error}</div>}
 
       <UploadCard onUploaded={refresh} />
       <ProfileCard profile={profile} />
+      <PreferencesCard />
       <DiscoverCard profile={profile} onDiscovered={refresh} />
       <ApplicationsTable applications={applications} onChanged={refresh} />
     </div>

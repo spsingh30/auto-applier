@@ -1,4 +1,4 @@
-// Central error handler — har controller `next(err)` yahin bhejta hai.
+// Central error handler — every controller sends `next(err)` here.
 const multer = require('multer');
 
 function errorHandler(err, req, res, next) {

@@ -1,6 +1,6 @@
-// Multer — file ko memory me buffer ke roop me leta hai.
-// Buffer text-extractor ko jaata hai; saath hi controller ise uploads/ me disk pe save
-// karta hai taaki fill phase (Puppeteer) us file ko ATS form pe attach kar sake.
+// Multer — takes the file into memory as a buffer.
+// The buffer goes to the text extractor; the controller also saves it to disk in uploads/
+// so that the fill phase (Puppeteer) can attach that file to the ATS form.
 const multer = require('multer');
 
 const ALLOWED = new Set([
@@ -16,7 +16,7 @@ const upload = multer({
     const ok =
       ALLOWED.has(file.mimetype) || /\.(pdf|docx|txt)$/i.test(file.originalname);
     if (ok) cb(null, true);
-    else cb(new Error('Sirf PDF, DOCX ya TXT allowed hai.'));
+    else cb(new Error('Only PDF, DOCX or TXT files are allowed.'));
   },
 });
 

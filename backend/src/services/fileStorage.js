@@ -1,17 +1,17 @@
-// Uploaded resume buffer ko disk pe save karta hai (uploads/ folder).
-// Fill phase (Puppeteer) ko ATS form pe attach karne ke liye asli file chahiye —
-// memory buffer request ke baad gayab ho jaata hai, isliye persist karna zaroori hai.
+// Saves the uploaded resume buffer to disk (the uploads/ folder).
+// The fill phase (Puppeteer) needs a real file to attach to the ATS form —
+// the in-memory buffer disappears after the request, so persisting it is necessary.
 const fs = require('fs');
 const path = require('path');
 
-// backend/uploads/  (gitignored). Absolute path taaki Puppeteer ko de sakein.
+// backend/uploads/  (gitignored). Absolute path so we can pass it to Puppeteer.
 const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads');
 
 function ensureDir() {
   if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// Naam safe banao + clash se bachne ke liye timestamp prefix.
+// Make the name safe + add a timestamp prefix to avoid clashes.
 function safeName(originalName) {
   const base = (originalName || 'resume').replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
   return `${Date.now()}_${base}`;

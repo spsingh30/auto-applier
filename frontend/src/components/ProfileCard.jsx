@@ -1,10 +1,10 @@
-// Extracted profile data dikhata hai — naam, contact, skills, experience, education.
+// Shows the extracted profile data — name, contact, skills, experience, education.
 export default function ProfileCard({ profile }) {
   if (!profile) {
     return (
       <div className="card">
         <h2>2 · Extracted profile</h2>
-        <div className="empty">Abhi koi resume upload nahi hua. Upar upload karo.</div>
+        <div className="empty">No resume uploaded yet. Upload one above.</div>
       </div>
     );
   }
@@ -37,7 +37,7 @@ export default function ProfileCard({ profile }) {
           <div className="chips">
             {profile.skills.map((s) => <span key={s} className="chip">{s}</span>)}
           </div>
-        ) : <span style={{ color: 'var(--muted)' }}>Koi skill detect nahi hui</span>}
+        ) : <span style={{ color: 'var(--muted)' }}>No skills detected</span>}
       </div>
 
       <div style={{ marginTop: 22 }}>
@@ -48,7 +48,7 @@ export default function ProfileCard({ profile }) {
             <div className="meta">{[e.startDate, e.endDate].filter(Boolean).join(' – ')}</div>
             {e.description && <div className="desc">{e.description}</div>}
           </div>
-        )) : <span style={{ color: 'var(--muted)' }}>Experience detect nahi hua (AI mode me aayega)</span>}
+        )) : <span style={{ color: 'var(--muted)' }}>No experience detected (will appear in AI mode)</span>}
       </div>
 
       <div style={{ marginTop: 22 }}>
@@ -58,7 +58,7 @@ export default function ProfileCard({ profile }) {
             <div className="role">{ed.degree || 'Degree'} {ed.field && `· ${ed.field}`}</div>
             <div className="meta">{ed.school} {ed.endDate && `· ${ed.endDate}`}</div>
           </div>
-        )) : <span style={{ color: 'var(--muted)' }}>Education detect nahi hua</span>}
+        )) : <span style={{ color: 'var(--muted)' }}>No education detected</span>}
       </div>
     </div>
   );

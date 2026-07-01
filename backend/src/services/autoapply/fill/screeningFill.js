@@ -1,21 +1,23 @@
-// Generic AI form-filler — adapters ke standard fields ke baad jo bhi controls
-// bache (text, textarea, select, radio, checkbox) unhe label + options ke saath scrape
-// karke AI se bharta hai. Yehi "fill fully" ka core hai.
+// Generic AI form-filler — after the adapters' standard fields, whatever controls
+// remain (text, textarea, select, radio, checkbox) are scraped with their label + options
+// and filled by the AI. This is the core of "fill fully".
 //
 // Approach:
-//  1) page se saare form controls + unke labels + options scrape (data-aa-key tag)
-//  2) already-filled / standard (name/email/phone/resume) skip
-//  3) AI se har question ka answer (options wale ka answer = exact option string)
-//  4) type ke hisaab se apply: text→type, select→option, radio→click, checkbox→check
+//  1) scrape all form controls + their labels + options from the page (data-aa-key tag)
+//  2) skip already-filled / standard fields (name/email/phone/resume)
+//  3) get an answer for each question from the AI (for options, the answer = exact option string)
+//  4) apply by type: text→type, select→option, radio→click, checkbox→check
 const { answerQuestions } = require('./screening');
+const { matchPreference } = require('../preferences');
+const { splitName } = require('./formUtils');
 
-// Browser context me chalega — saare controls + labels + options nikaalo.
-// (Function ko string ke roop me page.evaluate me bhejte hain.)
+// Runs in the browser context — collect all controls + labels + options.
+// (The function is passed into page.evaluate as a string.)
 function scrapeFields() {
-  // Skip sirf: email/phone/resume/cover-letter (adapter bharta hai; khaali ho to value-check
-  // wapas allow karega). Link/url fields ab SKIP nahi — unhe profile URL se bharte hain (neeche).
+  // Skip only: email/phone/resume/cover-letter (the adapter fills these; if empty, the value-check
+  // will allow them back in). Link/url fields are NOT skipped anymore — we fill them from the profile URL (below).
   const SKIP = /e-?mail|phone|resume|cover letter/i;
-  // Link field hai? to kaunsa (profile se bharne ke liye). warna null.
+  // Is this a link field? If so, which kind (to fill from the profile). Otherwise null.
   function linkKind(label) {
     const l = label.toLowerCase();
     if (/linkedin/.test(l)) return 'linkedin';
@@ -24,8 +26,16 @@ function scrapeFields() {
     if (/portfolio|personal (web)?site|^website|other website|other link|^links?$|\burl\b/.test(l)) return 'website';
     return null;
   }
+  // Is this a name field? (AI guessing gets it wrong — fill directly from the profile name). Otherwise null.
+  function nameKind(label) {
+    const l = label.toLowerCase();
+    if (/legal last name|preferred last name|^last name|family name|surname/.test(l)) return 'last';
+    if (/legal first name|preferred first name|preferred name|^first name|given name/.test(l)) return 'first';
+    if (/^full legal name|^legal name|^full name|^name$|what.*your full name/.test(l)) return 'full';
+    return null;
+  }
 
-  // Kisi element ka best label dhoondo.
+  // Find the best label for an element.
   function labelFor(el) {
     // 1) <label for=id>
     if (el.id) {
@@ -42,20 +52,20 @@ function scrapeFields() {
     // 3) closest <label> ancestor
     const anc = el.closest('label');
     if (anc && anc.textContent.trim()) return anc.textContent;
-    // 4) wrapper me pehla label/legend/heading
+    // 4) first label/legend/heading in the wrapper
     const wrap = el.closest('.field, .application-question, fieldset, [class*="question"], div');
     if (wrap) {
       const l = wrap.querySelector('label, legend, .application-label, h3, h4');
       if (l && l.textContent.trim()) return l.textContent;
     }
     // 5) label often ELEMENT/SIBLING ABOVE the field (no shared wrapper).
-    //    Field aur uske ancestors ke previousElementSibling me label/heading text dekho.
+    //    Look for label/heading text in the previousElementSibling of the field and its ancestors.
     let node = el;
     for (let depth = 0; depth < 4 && node; depth++) {
       let prev = node.previousElementSibling;
       let hops = 0;
       while (prev && hops < 3) {
-        // input/select/textarea wala sibling label nahi hota — chhodo.
+        // a sibling containing input/select/textarea isn't a label — skip it.
         if (!prev.querySelector('input, select, textarea') && !/^(input|select|textarea)$/i.test(prev.tagName)) {
           const t = (prev.textContent || '').trim();
           if (t && t.length <= 250) return t;
@@ -72,7 +82,7 @@ function scrapeFields() {
   function clean(s) {
     return (s || '').replace(/\*|✱|required/gi, '').replace(/\s+/g, ' ').trim();
   }
-  // react-select / autocomplete dropdown? (text input jo asal me dropdown hai)
+  // react-select / autocomplete dropdown? (a text input that's actually a dropdown)
   function isCombobox(el) {
     if (el.getAttribute('role') === 'combobox') return true;
     if (el.getAttribute('aria-autocomplete')) return true;
@@ -100,9 +110,11 @@ function scrapeFields() {
     if (!label || label.length > 250) continue;
     if (SKIP.test(label)) continue;
 
-    // Link/URL field — profile se bharenge (AI URL invent na kare). Text input hi.
+    const isTextish = type !== 'select-one' && type !== 'select' && type !== 'radio' && type !== 'checkbox';
+
+    // Link/URL field — fill from the profile (so the AI doesn't invent a URL). Text input only.
     const lk = linkKind(label);
-    if (lk && type !== 'select-one' && type !== 'select' && type !== 'radio' && type !== 'checkbox') {
+    if (lk && isTextish) {
       if (el.value && el.value.trim()) continue;
       const k = `aa${key++}`;
       el.setAttribute('data-aa-key', k);
@@ -110,8 +122,18 @@ function scrapeFields() {
       continue;
     }
 
+    // Name field — fill directly from the profile name (AI guessing is wrong, e.g. "LinkedIn").
+    const nk = nameKind(label);
+    if (nk && isTextish) {
+      if (el.value && el.value.trim()) continue;
+      const k = `aa${key++}`;
+      el.setAttribute('data-aa-key', k);
+      out.push({ key: k, label, type: 'name', nameKind: nk, sel: `[data-aa-key="${k}"]` });
+      continue;
+    }
+
     if (type === 'radio' || type === 'checkbox') {
-      // Group by name — ek hi question, multiple options.
+      // Group by name — one question, multiple options.
       const groupKey = `${type}:${el.name || label}`;
       if (seenRadio.has(groupKey)) continue;
       seenRadio.add(groupKey);
@@ -124,7 +146,7 @@ function scrapeFields() {
         p.setAttribute('data-aa-key', k);
         options.push({ key: k, text: clean(labelFor(p)) || p.value || `option ${i + 1}` });
       });
-      // Agar single checkbox (consent style) — options me bas wahi label.
+      // If a single checkbox (consent style) — options just holds that one label.
       out.push({ key: `aa${key}`, label, type, options });
       key++;
     } else if (type === 'select-one' || type === 'select' || el.tagName.toLowerCase() === 'select') {
@@ -136,23 +158,23 @@ function scrapeFields() {
       if (!options.length) continue;
       out.push({ key: k, label, type: 'select', options, sel: `[data-aa-key="${k}"]` });
     } else if (type !== 'textarea' && isCombobox(el)) {
-      // Dropdown-as-text-input (react-select etc.) — type + Enter se commit hoga.
+      // Dropdown-as-text-input (react-select etc.) — commits via type + Enter.
       if (el.value && el.value.trim()) continue;
       const k = `aa${key++}`;
       el.setAttribute('data-aa-key', k);
       out.push({ key: k, label, type: 'combobox', sel: `[data-aa-key="${k}"]` });
     } else {
       // text, textarea, email-ish customs, etc.
-      if (el.value && el.value.trim()) continue; // pehle se bhara hai — chhodo
+      if (el.value && el.value.trim()) continue; // already filled — skip
       const k = `aa${key++}`;
       el.setAttribute('data-aa-key', k);
       out.push({ key: k, label, type: type === 'textarea' ? 'textarea' : 'text', sel: `[data-aa-key="${k}"]` });
     }
   }
 
-  // Dedup: ek hi question (label) ke liye agar chooser (select/combobox/radio/checkbox)
-  // AUR text dono ban gaye (react-select ke andar ka extra input duplicate banata hai),
-  // to text-wala hata do — chooser hi sahi hai.
+  // Dedup: if for the same question (label) both a chooser (select/combobox/radio/checkbox)
+  // AND a text field were created (react-select's inner extra input causes a duplicate),
+  // drop the text one — the chooser is the correct one.
   const chooserLabels = new Set(
     out.filter((f) => !['text', 'textarea'].includes(f.type)).map((f) => f.label.toLowerCase())
   );
@@ -160,23 +182,23 @@ function scrapeFields() {
 }
 
 /**
- * Adapter standard fields bharne ke baad ye call kare.
+ * The adapter should call this after filling the standard fields.
  * @returns {Promise<Array<{question,answer,type,applied}>>}
  */
-async function fillRemaining(page, profile, job, notes) {
+async function fillRemaining(page, profile, job, notes, prefs = {}) {
   let fields = [];
   try {
     fields = await page.evaluate(`(${scrapeFields.toString()})()`);
   } catch (e) {
-    notes.push(`screening scrape fail: ${e.message}`);
+    notes.push(`screening scrape failed: ${e.message}`);
     return [];
   }
   if (!fields.length) {
-    notes.push('screening: koi extra field nahi mila');
+    notes.push('screening: no extra fields found');
     return [];
   }
 
-  // Link/URL fields profile se aate hain (AI nahi). twitter ka field nahi → undefined.
+  // Link/URL fields come from the profile (not the AI). No twitter field → undefined.
   const LINK_VALUES = {
     linkedin: profile?.linkedin || null,
     github: profile?.github || null,
@@ -184,17 +206,37 @@ async function fillRemaining(page, profile, job, notes) {
     twitter: profile?.twitter || null,
   };
 
-  // AI sirf non-link fields ke liye. Combobox options pehle padho.
-  const aiFields = fields.filter((f) => f.type !== 'link');
+  // Profile name -> first/last/full (to fill name fields deterministically).
+  const nm = splitName(profile?.fullName);
+  const NAME_VALUES = {
+    first: nm.first || profile?.fullName || '',
+    last: nm.last || '',
+    full: profile?.fullName || [nm.first, nm.last].filter(Boolean).join(' '),
+  };
+
+  // 1) Name + saved-answers (preferences) first — no AI guess (accurate + fast).
+  const ansByKey = {};
+  const aiFields = [];
+  for (const f of fields) {
+    if (f.type === 'link' || f.type === 'name') continue;
+    const pref = matchPreference(f.label, prefs);
+    if (pref) ansByKey[f.key] = pref; // user provided it → use directly
+    else aiFields.push(f); // otherwise ask the AI
+  }
+
+  // 2) Read options only for UNmatched comboboxes (the ones the AI needs) — for speed.
   for (const f of aiFields) {
     if (f.type === 'combobox') {
       f.options = await readComboOptions(page, f.sel); // string[]
     }
   }
-  const qForAI = aiFields.map((f) => ({ label: f.label, options: optTexts(f) }));
-  const answers = await answerQuestions(qForAI, profile, job);
-  const ansByKey = {};
-  aiFields.forEach((f, i) => { ansByKey[f.key] = (answers[i] || '').trim(); });
+
+  // 3) Remaining questions via the AI (if any).
+  if (aiFields.length) {
+    const qForAI = aiFields.map((f) => ({ label: f.label, options: optTexts(f) }));
+    const answers = await answerQuestions(qForAI, profile, job);
+    aiFields.forEach((f, i) => { ansByKey[f.key] = (answers[i] || '').trim(); });
+  }
 
   const result = [];
   for (const f of fields) {
@@ -203,7 +245,10 @@ async function fillRemaining(page, profile, job, notes) {
     try {
       if (f.type === 'link') {
         ans = LINK_VALUES[f.linkKind] || '';
-        if (ans) applied = await applyText(page, f.sel, ans); // data ho to bharo, warna blank
+        if (ans) applied = await applyText(page, f.sel, ans); // fill if there's data, otherwise leave blank
+      } else if (f.type === 'name') {
+        ans = NAME_VALUES[f.nameKind] || '';
+        if (ans) applied = await applyText(page, f.sel, ans);
       } else {
         ans = ansByKey[f.key] || '';
         if (f.type === 'text' || f.type === 'textarea') {
@@ -217,7 +262,7 @@ async function fillRemaining(page, profile, job, notes) {
         }
       }
     } catch (e) {
-      notes.push(`"${f.label.slice(0, 30)}": apply fail (${e.message})`);
+      notes.push(`"${f.label.slice(0, 30)}": apply failed (${e.message})`);
     }
     notes.push(`[${f.type}] ${f.label.slice(0, 38)} → ${applied ? `"${String(ans).slice(0, 34)}"` : 'skip'}`);
     result.push({ question: f.label, answer: ans, type: f.type, applied });
@@ -234,16 +279,16 @@ async function applyText(page, sel, value) {
   await page.keyboard.press('Delete');
   await el.type(value, { delay: 12 });
 
-  // Type karne par agar autocomplete/suggestion list aayi → ye asal me "choose option"
-  // field hai (sirf text nahi). Matching option click kar do (warna raw text reh jaata).
-  await new Promise((r) => setTimeout(r, 450));
+  // If typing brings up an autocomplete/suggestion list → this is actually a "choose option"
+  // field (not just text). Click the matching option (otherwise raw text is left behind).
+  await new Promise((r) => setTimeout(r, 260));
   const opts = await readRenderedOptions(page);
   if (opts.length) {
     const choice = chooseOption(opts, value);
     if (choice) {
       const ok = await clickOptionByText(page, choice);
       if (!ok) {
-        // Click na chale to keyboard se: highlight + select.
+        // If clicking doesn't work, use the keyboard: highlight + select.
         await page.keyboard.press('ArrowDown').catch(() => {});
         await page.keyboard.press('Enter').catch(() => {});
       }
@@ -252,16 +297,16 @@ async function applyText(page, sel, value) {
   return true;
 }
 
-// --- Option helpers (har dropdown/radio me ek na ek option chun-na hai) ---
+// --- Option helpers (every dropdown/radio must have one option selected) ---
 
-// field.options ko string[] me normalize karo (select=string[], radio/checkbox={text}).
+// Normalize field.options to string[] (select=string[], radio/checkbox={text}).
 function optTexts(f) {
   if (!f.options || !f.options.length) return undefined;
   return f.options.map((o) => (typeof o === 'string' ? o : o.text)).filter(Boolean);
 }
 
-// Wanted answer ke liye sabse acha option chuno. Match na mile to neutral/pehla —
-// taaki har field bhare (user "koi blank na rahe" chahta hai). null sirf jab options hi na hon.
+// Choose the best option for the wanted answer. If no match, pick neutral/first —
+// so every field gets filled (the user wants "nothing left blank"). null only when there are no options.
 function chooseOption(options, wanted) {
   if (!options || !options.length) return null;
   const w = String(wanted || '').toLowerCase().trim();
@@ -271,11 +316,11 @@ function chooseOption(options, wanted) {
     options.find((t) => w.length > 1 && t.toLowerCase().startsWith(w)) ||
     inc[0] ||
     options.find((t) => w && w.includes(t.toLowerCase()) && t.length > 1) ||
-    // Koi match nahi — neutral/"none of the above" type option prefer karo (galat data se behtar).
+    // No match — prefer a neutral/"none of the above" type option (better than wrong data).
     options.find((t) =>
       /prefer not|decline|don'?t wish|do not wish|not specified|not applicable|outside|international|do(es)? not (reside|apply)|none of|other|^n\/?a$/i.test(t)
     ) ||
-    options[0] // last resort: kuch to chuno (required field blank na rahe)
+    options[0] // last resort: choose something (so a required field isn't left blank)
   );
 }
 
@@ -296,17 +341,17 @@ async function readRenderedOptions(page) {
     .catch(() => []);
 }
 
-// Menu khol ke options padho, phir band kar do (AI ko dene ke liye).
+// Open the menu, read the options, then close it (to hand off to the AI).
 async function readComboOptions(page, sel) {
   const el = await page.$(sel);
   if (!el) return [];
   try {
     await el.evaluate((e) => e.scrollIntoView({ block: 'center' })).catch(() => {});
     await el.click().catch(() => {});
-    await new Promise((r) => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 300));
     const opts = await readRenderedOptions(page);
     await page.keyboard.press('Escape').catch(() => {});
-    await new Promise((r) => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, 70));
     return opts;
   } catch {
     return [];
@@ -334,11 +379,11 @@ async function clearComboInput(page, el) {
   await el.focus().catch(() => {});
   await page.keyboard.down('Control'); await page.keyboard.press('KeyA'); await page.keyboard.up('Control');
   await page.keyboard.press('Delete');
-  await new Promise((r) => setTimeout(r, 250));
+  await new Promise((r) => setTimeout(r, 150));
 }
 
-// Combobox: menu khol → (zaroorat ho to type se filter) → best option CLICK. Hamesha kuch chuno.
-// Required field kabhi blank na rahe — match na mile to bhi neutral/best option select.
+// Combobox: open menu → (filter by typing if needed) → CLICK the best option. Always choose something.
+// A required field is never left blank — even with no match, select the neutral/best option.
 async function applyCombobox(page, sel, value) {
   const el = await page.$(sel);
   if (!el) return false;
@@ -349,11 +394,11 @@ async function applyCombobox(page, sel, value) {
     await new Promise((r) => setTimeout(r, 300));
 
     let opts = await readRenderedOptions(page);
-    // Lambi list ko type se filter karo — PAR agar filter se list khaali ho jaaye to
-    // input clear karke poori list wapas le aao (warna kuch render nahi → click fail → blank).
+    // Filter a long list by typing — BUT if the filter empties the list,
+    // clear the input to bring the full list back (otherwise nothing renders → click fails → blank).
     if (opts.length > 8 && value) {
       await el.type(String(value), { delay: 18 });
-      await new Promise((r) => setTimeout(r, 450));
+      await new Promise((r) => setTimeout(r, 260));
       const filtered = await readRenderedOptions(page);
       if (filtered.length) {
         opts = filtered;
@@ -366,7 +411,7 @@ async function applyCombobox(page, sel, value) {
     let choice = chooseOption(opts, value);
     let ok = choice ? await clickOptionByText(page, choice) : false;
 
-    // Click fail (option abhi rendered nahi — filter laga reh gaya?) → clear karke full list se dobara.
+    // Click failed (option not rendered yet — filter still applied?) → clear and retry from the full list.
     if (!ok) {
       await clearComboInput(page, el);
       const full = await readRenderedOptions(page);
@@ -375,14 +420,14 @@ async function applyCombobox(page, sel, value) {
     }
 
     if (!ok) await page.keyboard.press('Escape').catch(() => {});
-    await new Promise((r) => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, 70));
     return ok;
   } catch {
     return false;
   }
 }
 
-// Native <select>: best option chuno (hamesha kuch).
+// Native <select>: choose the best option (always something).
 async function applySelect(page, sel, answer, options) {
   const el = await page.$(sel);
   if (!el) return false;
@@ -403,13 +448,13 @@ async function applySelect(page, sel, answer, options) {
   );
 }
 
-// Radio/checkbox: best option click. Single checkbox special-case (consent vs required-agreement).
+// Radio/checkbox: click the best option. Single checkbox is a special case (consent vs required-agreement).
 async function applyChoice(page, field, answer) {
   if (field.type === 'checkbox' && field.options.length === 1) {
     const label = (field.label || '').toLowerCase();
-    // Optional marketing/contact-consent — kabhi auto-tick mat karo (user khud kare).
+    // Optional marketing/contact-consent — never auto-tick (let the user do it).
     const isMarketing = /consent|contact me|subscribe|newsletter|updates|future (job )?opportunit|marketing|promotional|mailing list/i.test(label);
-    // Required agreement (terms/privacy) — usually submit ke liye zaroori, tick kar do.
+    // Required agreement (terms/privacy) — usually needed to submit, so tick it.
     const isAgreement = /agree|terms|privacy|acknowledge|certify|authorize|confirm|i have read|gdpr|consent to (the )?process/i.test(label);
     if (isMarketing && !isAgreement) return false;
     if (isAgreement || /\b(yes|haan|true|i have|i do)\b/i.test(answer)) {

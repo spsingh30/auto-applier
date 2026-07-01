@@ -1,15 +1,15 @@
-// PDF ke hyperlink ANNOTATIONS se URLs nikaalta hai.
-// Resume me LinkedIn/GitHub/Portfolio aksar clickable text/icon hote hain — unka actual URL
-// extracted text me nahi, PDF ke annotation layer me hota hai. Yahi nikaalte hain.
+// Extracts URLs from the PDF's hyperlink ANNOTATIONS.
+// In a resume, LinkedIn/GitHub/Portfolio are often clickable text/icons — their actual URL
+// isn't in the extracted text but in the PDF's annotation layer. That's what we pull out here.
 const pdfjs = require('pdfjs-dist/legacy/build/pdf.js');
 
 /**
  * @param {Buffer} buffer
- * @returns {Promise<string[]>} annotation URLs (mailto bhi shamil)
+ * @returns {Promise<string[]>} annotation URLs (mailto included)
  */
 async function extractPdfLinks(buffer) {
   const origWarn = console.warn;
-  console.warn = () => {}; // pdfjs ke harmless canvas/DOMMatrix warnings dabao
+  console.warn = () => {}; // suppress pdfjs's harmless canvas/DOMMatrix warnings
   try {
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(buffer),
@@ -30,7 +30,7 @@ async function extractPdfLinks(buffer) {
     await doc.destroy().catch(() => {});
     return [...urls];
   } catch (e) {
-    console.error('[pdfLinks] annotation extract fail:', e.message);
+    console.error('[pdfLinks] annotation extraction failed:', e.message);
     return [];
   } finally {
     console.warn = origWarn;

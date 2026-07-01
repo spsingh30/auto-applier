@@ -1,9 +1,9 @@
-// Discovery layer — har ATS ki public (no-auth) JSON API hit karke open jobs nikaalta hai.
-// Browser/Puppeteer yahan NHI — sirf APIs. Fill/submit baad ka phase hai.
+// Discovery layer — hits each ATS's public (no-auth) JSON API to pull open jobs.
+// No Browser/Puppeteer here — APIs only. Fill/submit is a later phase.
 // Output: normalized job objects { company, jobTitle, jobUrl, jobId, location, ats }.
 const { BOARDS } = require('./boards');
 
-const DELAY_MS = 350; // Lever/Workable burst pe false-404 deti hain — polite raho.
+const DELAY_MS = 350; // Lever/Workable return false 404s on bursts — be polite.
 const TIMEOUT_MS = 9000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -13,7 +13,7 @@ function prettyCompany(slug) {
   return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-// AbortController ke saath fetch (hang na ho).
+// Fetch with an AbortController (so it doesn't hang).
 async function getJson(url, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -91,14 +91,14 @@ async function fromWorkable(slug) {
     jobTitle: j.title,
     jobUrl: j.url || `https://apply.workable.com/${slug}/j/${j.shortcode}/`,
     jobId: j.shortcode || j.id || null,
-    // Workable v3 me `location` ek nested object hota hai ({display, city, region, country}),
-    // top-level j.city/j.country nahi. Object ko string me badlo (warna Prisma 500 deta hai).
+    // In Workable v3, `location` is a nested object ({display, city, region, country}),
+    // not top-level j.city/j.country. Convert the object to a string (otherwise Prisma throws a 500).
     location: workableLocation(j),
     ats: 'workable',
   }));
 }
 
-// Workable location ko string me normalize karo (string/object/khaali — sab handle).
+// Normalize the Workable location to a string (handles string/object/empty).
 function workableLocation(j) {
   const loc = j.location;
   if (typeof loc === 'string') return loc.trim() || null;
@@ -121,19 +121,19 @@ const FETCHERS = {
 };
 
 /**
- * Saari (ya chuni hui) boards discover karo.
+ * Discover all (or selected) boards.
  * @param {object} opts
- * @param {string[]} [opts.ats]          - kaunse ATS (default: sab)
- * @param {number}   [opts.limitPerBoard]- har board se max jobs (default 15)
- * @param {string}   [opts.query]        - title me ye keyword ho to hi rakho (optional, single)
- * @param {string[]} [opts.queries]      - in me se KOI bhi keyword title me ho to rakho (optional, multi)
- * @param {function} [opts.onProgress]   - (info) => void  live log ke liye
+ * @param {string[]} [opts.ats]          - which ATS (default: all)
+ * @param {number}   [opts.limitPerBoard]- max jobs per board (default 15)
+ * @param {string}   [opts.query]        - keep only if the title contains this keyword (optional, single)
+ * @param {string[]} [opts.queries]      - keep if the title contains ANY of these keywords (optional, multi)
+ * @param {function} [opts.onProgress]   - (info) => void  for live logging
  * @returns {Promise<{ jobs: object[], boardsHit: number, boardsFailed: number, errors: object[] }>}
  */
 async function discover(opts = {}) {
   const atsList = (opts.ats && opts.ats.length ? opts.ats : Object.keys(BOARDS)).filter((a) => FETCHERS[a]);
   const limitPerBoard = opts.limitPerBoard ?? 15;
-  // queries[] (multi) + query (single) dono ko ek lowercase keyword list me mila do.
+  // Merge queries[] (multi) + query (single) into a single lowercase keyword list.
   const keywords = [...(opts.queries || []), opts.query]
     .map((k) => (k || '').trim().toLowerCase())
     .filter(Boolean);

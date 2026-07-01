@@ -1,7 +1,7 @@
-// Screening questions ka jawaab LLM (OpenRouter) se draft karta hai.
-// Adapter form se questions (label + type) scrape karta hai → yahan bhej deta hai →
-// profile + job context ke saath answers banwa lete hain. Review mode: user dekh ke submit kare.
-// API key na ho/fail ho → heuristic fallback (short generic answers).
+// Drafts answers to screening questions via the LLM (OpenRouter).
+// The adapter scrapes questions (label + type) from the form → sends them here →
+// we generate answers using profile + job context. Review mode: the user reviews and submits.
+// If the API key is missing/fails → heuristic fallback (short generic answers).
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You fill a job application form on behalf of a candidate. Answer EVERY question — never leave one blank.
@@ -49,7 +49,7 @@ async function answerQuestions(questions, profile, job) {
       // length mismatch → pad/truncate to be safe
       return questions.map((_, i) => a[i] || heuristicAnswer(questions[i], profile));
     } catch (err) {
-      console.error('[screening] LLM fail, heuristic pe gir rahe hain:', err.message);
+      console.error('[screening] LLM failed, falling back to heuristic:', err.message);
     }
   }
 
@@ -99,18 +99,18 @@ async function llmAnswers(questions, profile, job, apiKey) {
   const text = body?.choices?.[0]?.message?.content || '';
   const json = extractJson(text);
   const arr = Array.isArray(json) ? json : json.answers;
-  if (!Array.isArray(arr)) throw new Error('answers array nahi mila');
+  if (!Array.isArray(arr)) throw new Error('answers array not found');
   return arr.map((a) => (typeof a === 'string' ? a : String(a ?? '')));
 }
 
 function extractJson(text) {
   const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   const start = cleaned.search(/[[{]/);
-  if (start === -1) throw new Error('JSON nahi mila');
+  if (start === -1) throw new Error('JSON not found');
   return JSON.parse(cleaned.slice(start));
 }
 
-// --- Fallback (no LLM): question type se best-effort short answer. ---
+// --- Fallback (no LLM): best-effort short answer based on question type. ---
 function heuristicAnswer(q, profile) {
   const label = (q.label || '').toLowerCase();
   if (/year|experience/.test(label)) {
@@ -124,7 +124,7 @@ function heuristicAnswer(q, profile) {
     const role = (profile?.experiences?.[0]?.title) || 'this role';
     return `My background in ${role} aligns well with this position and I'm excited to contribute.`;
   }
-  if (q.options?.length) return q.options[0]; // pehla option default
+  if (q.options?.length) return q.options[0]; // default to the first option
   return 'Not specified';
 }
 

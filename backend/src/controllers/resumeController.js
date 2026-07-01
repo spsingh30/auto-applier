@@ -9,31 +9,31 @@ const profileModel = require('../models/profileModel');
 async function uploadResume(req, res, next) {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Koi file nahi mili. Field name "resume" hona chahiye.' });
+      return res.status(400).json({ error: 'No file found. The field name must be "resume".' });
     }
 
-    // 1) File se raw text
+    // 1) Raw text from the file
     const rawText = await extractText(req.file.buffer, req.file.mimetype, req.file.originalname);
     if (!rawText || rawText.length < 20) {
-      return res.status(422).json({ error: 'Resume se text nahi nikal paaya (shayad scanned image PDF hai).' });
+      return res.status(422).json({ error: 'Could not extract text from the resume (it may be a scanned image PDF).' });
     }
 
-    // 1.5) PDF ho to hyperlink annotations nikaalo (LinkedIn/GitHub/Portfolio ka asli URL).
+    // 1.5) If it's a PDF, extract hyperlink annotations (the real LinkedIn/GitHub/Portfolio URLs).
     const isPdf = req.file.mimetype === 'application/pdf' || /\.pdf$/i.test(req.file.originalname);
     const pdfUrls = isPdf ? await extractPdfLinks(req.file.buffer).catch(() => []) : [];
 
-    // 2) Text -> structured profile (LLM ya heuristic) + links backfill
+    // 2) Text -> structured profile (LLM or heuristic) + links backfill
     const { data, method } = await parseResume(rawText, pdfUrls);
 
-    // 2.5) Original file disk pe save — fill phase (Puppeteer) ATS form pe attach karega.
+    // 2.5) Save the original file to disk — the fill phase (Puppeteer) will attach it to the ATS form.
     let storagePath = null;
     try {
       storagePath = saveResume(req.file.buffer, req.file.originalname);
     } catch (e) {
-      console.error('[resume] file disk pe save nahi hui:', e.message); // parse fir bhi chalega
+      console.error('[resume] file could not be saved to disk:', e.message); // parsing will still proceed
     }
 
-    // 3) DB me save (Profile + experiences + educations + resume doc)
+    // 3) Save to the DB (Profile + experiences + educations + resume doc)
     const profile = await profileModel.createFromParsed(data, {
       fileName: req.file.originalname,
       fileType: req.file.mimetype || 'unknown',

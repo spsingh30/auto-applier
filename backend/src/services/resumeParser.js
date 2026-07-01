@@ -1,11 +1,11 @@
 // Raw resume text -> structured profile JSON.
-// Pehle LLM try karta hai (accurate). API key na ho to heuristic fallback.
-// LLM call OpenRouter (OpenAI-compatible /chat/completions) ke through jaata hai.
+// Tries the LLM first (accurate). If there's no API key, falls back to a heuristic.
+// The LLM call goes through OpenRouter (OpenAI-compatible /chat/completions).
 const { z } = require('zod');
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// --- Output ka strict shape. LLM jo de, usko isse validate karte hain. ---
+// --- Strict output shape. Whatever the LLM returns is validated against this. ---
 const ProfileSchema = z.object({
   fullName: z.string().nullable().default(null),
   email: z.string().nullable().default(null),
@@ -69,7 +69,7 @@ Rules:
  */
 /**
  * @param {string} rawText
- * @param {string[]} [pdfUrls]  - PDF annotation se mile URLs (sabse reliable for links)
+ * @param {string[]} [pdfUrls]  - URLs found from PDF annotations (most reliable for links)
  */
 async function parseResume(rawText, pdfUrls = []) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -77,22 +77,22 @@ async function parseResume(rawText, pdfUrls = []) {
   if (apiKey) {
     try {
       const data = await parseWithLLM(rawText, apiKey);
-      // LLM aksar exact URLs miss karta hai — PDF annotations + regex se pakka karo.
+      // The LLM often misses exact URLs — confirm them via PDF annotations + regex.
       return { data: backfillLinks(data, rawText, pdfUrls), method: 'llm' };
     } catch (err) {
-      console.error('[resumeParser] LLM parse fail, heuristic pe gir rahe hain:', err.message);
+      console.error('[resumeParser] LLM parse failed, falling back to heuristic:', err.message);
     }
   }
 
   return { data: backfillLinks(heuristicParse(rawText), rawText, pdfUrls), method: 'heuristic' };
 }
 
-// Annotation/extra URLs ko linkedin/github/website me classify karo.
+// Classify annotation/extra URLs into linkedin/github/website.
 function classifyUrls(urls, fullName) {
   const tidy = (u) => u.replace(/[.,;)\]]+$/, '').replace(/\/$/, '');
   const list = (urls || []).filter((u) => u && !/^mailto:/i.test(u));
   const linkedin = list.find((u) => /linkedin\.com\/(in|pub)\//i.test(u));
-  // GitHub: profile (github.com/user) prefer, repo (.../repo.git) nahi.
+  // GitHub: prefer the profile (github.com/user), not a repo (.../repo.git).
   const github =
     list.find((u) => /github\.com\/[^/]+\/?$/i.test(u) && !/\.git$/i.test(u)) ||
     list.find((u) => /github\.com/i.test(u) && !/\.git$/i.test(u));
@@ -109,20 +109,20 @@ function classifyUrls(urls, fullName) {
   };
 }
 
-// Raw resume text se LinkedIn/GitHub/website URLs nikaalo (LLM jo miss kare wo bharo).
+// Extract LinkedIn/GitHub/website URLs from raw resume text (fill in what the LLM misses).
 function extractLinks(text) {
   const t = text || '';
   const grab = (re) => {
     const m = t.match(re);
     if (!m) return null;
-    let url = m[0].replace(/[.,;)\]]+$/, ''); // trailing punctuation hatao
+    let url = m[0].replace(/[.,;)\]]+$/, ''); // strip trailing punctuation
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
     return url;
   };
   const linkedin = grab(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/[A-Za-z0-9_%-]+\/?/i);
   const github = grab(/(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9_-]+\/?/i);
 
-  // Website: koi bhi URL jo social/email na ho. Portfolio domains (netlify/vercel/github.io/.dev) prefer.
+  // Website: any URL that isn't social/email. Prefer portfolio domains (netlify/vercel/github.io/.dev).
   let website = grab(
     /(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9-]+\.(?:netlify\.app|vercel\.app|github\.io|web\.app|dev|me|page|portfolio)[A-Za-z0-9./_-]*/i
   );
@@ -135,7 +135,7 @@ function extractLinks(text) {
   return { linkedin, github, website };
 }
 
-// Missing links bhar do — priority: PDF annotations > text-regex > LLM-guess.
+// Fill in missing links — priority: PDF annotations > text-regex > LLM-guess.
 function backfillLinks(data, rawText, pdfUrls = []) {
   const ann = classifyUrls(pdfUrls, data.fullName);
   const txt = extractLinks(rawText);
@@ -159,7 +159,7 @@ async function parseWithLLM(rawText, apiKey) {
     body: JSON.stringify({
       model,
       max_tokens: 2000,
-      // JSON-only output ko nudge karne ke liye.
+      // To nudge toward JSON-only output.
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -176,34 +176,34 @@ async function parseWithLLM(rawText, apiKey) {
   const body = await res.json();
   const text = body?.choices?.[0]?.message?.content || '';
   const json = extractJson(text);
-  return ProfileSchema.parse(json); // Zod validate — galat shape pe yahin error.
+  return ProfileSchema.parse(json); // Zod validation — errors out here on a wrong shape.
 }
 
-// LLM kabhi-kabhi ```json fence laga deta hai — usko nikaalo.
+// The LLM sometimes wraps output in a ```json fence — strip it out.
 function extractJson(text) {
   const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   const start = cleaned.indexOf('{');
   const end = cleaned.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('LLM output me JSON nahi mila');
+  if (start === -1 || end === -1) throw new Error('No JSON found in the LLM output');
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
-// --- Fallback: bina LLM ke basic regex extraction. ---
-// Perfect nahi, par API key na ho tab bhi kuch to dikhe.
+// --- Fallback: basic regex extraction without the LLM. ---
+// Not perfect, but shows something even when there's no API key.
 function heuristicParse(text) {
   const email = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] || null;
   const phone =
     text.match(/(\+?\d{1,3}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}/)?.[0] || null;
   const linkedin = text.match(/(https?:\/\/)?(www\.)?linkedin\.com\/[^\s)]+/i)?.[0] || null;
 
-  // Pehli non-empty line ko naam maan lete hain (resume me aksar top pe naam hota hai).
+  // Assume the first non-empty line is the name (the name is usually at the top of a resume).
   const firstLine =
     text
       .split('\n')
       .map((l) => l.trim())
       .find((l) => l.length > 0 && l.length < 50 && !l.includes('@')) || null;
 
-  // Common skills keyword scan.
+  // Scan for common skill keywords.
   const SKILL_WORDS = [
     'JavaScript', 'TypeScript', 'React', 'Node', 'Node.js', 'Python', 'Java', 'C++',
     'SQL', 'MongoDB', 'PostgreSQL', 'Prisma', 'Express', 'Docker', 'AWS', 'Git',

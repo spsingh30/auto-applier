@@ -9,13 +9,13 @@ const ATS_LABELS = {
   smartrecruiters: 'SmartRecruiters',
 };
 
-// Verified ATS boards se open jobs discover karta hai (no login / no captcha).
-// Resume se suggested keywords dikhata hai — user select kare, unhi se jobs filter hoti hain.
+// Discovers open jobs from verified ATS boards (no login / no captcha).
+// Shows suggested keywords from the resume — the user selects them, and jobs are filtered by those.
 export default function DiscoverCard({ profile, onDiscovered }) {
   const [boards, setBoards] = useState(null);
-  const [selected, setSelected] = useState(['lever']); // default chhota — fast test
-  const [suggested, setSuggested] = useState([]); // resume se aaye keywords
-  const [picked, setPicked] = useState([]); // user ne jo keywords chune
+  const [selected, setSelected] = useState(['lever']); // small default — fast test
+  const [suggested, setSuggested] = useState([]); // keywords from the resume
+  const [picked, setPicked] = useState([]); // keywords the user picked
   const [loadingKw, setLoadingKw] = useState(false);
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(15);
@@ -27,7 +27,7 @@ export default function DiscoverCard({ profile, onDiscovered }) {
     getBoards().then(setBoards).catch(() => {});
   }, []);
 
-  // Profile aane/badalne par suggested keywords le aao.
+  // Fetch suggested keywords when the profile arrives/changes.
   useEffect(() => {
     if (!profile?.id) {
       setSuggested([]);
@@ -38,7 +38,7 @@ export default function DiscoverCard({ profile, onDiscovered }) {
     getKeywords()
       .then((kw) => {
         setSuggested(kw);
-        setPicked(kw.slice(0, 3)); // pehle 3 default select — quick start
+        setPicked(kw.slice(0, 3)); // select the first 3 by default — quick start
       })
       .catch(() => setSuggested([]))
       .finally(() => setLoadingKw(false));
@@ -62,7 +62,7 @@ export default function DiscoverCard({ profile, onDiscovered }) {
         limitPerBoard: Number(limit),
         queries: picked, // selected keywords
         query: query.trim(), // extra manual keyword (optional)
-        clear: true, // nayi search se pehle purani saari jobs hata do (clean slate)
+        clear: true, // remove all old jobs before a new search (clean slate)
       });
       setResult(r);
       onDiscovered?.();
@@ -79,22 +79,22 @@ export default function DiscoverCard({ profile, onDiscovered }) {
 
   return (
     <div className="card">
-      <h2>0 · Jobs discover karo</h2>
+      <h2>0 · Discover jobs</h2>
       <p style={{ color: 'var(--muted)', marginTop: -6 }}>
-        Verified ATS boards (no login · no captcha) se open jobs nikaal ke neeche table me daalta hai.
+        Pulls open jobs from verified ATS boards (no login · no captcha) and adds them to the table below.
         <br />
-        <strong>Note:</strong> har nayi search se pehle purani saari jobs clear ho jaati hain (clean slate).
+        <strong>Note:</strong> all old jobs are cleared before every new search (clean slate).
       </p>
 
       {error && <div className="toast err">{error}</div>}
 
-      {/* --- Resume se suggested keywords --- */}
+      {/* --- Suggested keywords from the resume --- */}
       <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>Resume ke hisaab se suggested keywords</label>
+        <label style={labelStyle}>Suggested keywords based on your resume</label>
         {!profile?.id ? (
-          <span style={{ color: 'var(--muted)' }}>Pehle resume upload karo — phir keywords aayenge.</span>
+          <span style={{ color: 'var(--muted)' }}>Upload a resume first — then keywords will appear.</span>
         ) : loadingKw ? (
-          <span style={{ color: 'var(--muted)' }}>Keywords nikaal rahe hain…</span>
+          <span style={{ color: 'var(--muted)' }}>Extracting keywords…</span>
         ) : suggested.length ? (
           <>
             <div className="chips">
@@ -110,15 +110,15 @@ export default function DiscoverCard({ profile, onDiscovered }) {
               ))}
             </div>
             <small style={{ color: 'var(--muted)' }}>
-              {picked.length} selected — inhi keywords wali jobs dhoondi jaayengi.
+              {picked.length} selected — jobs matching these keywords will be searched.
             </small>
           </>
         ) : (
-          <span style={{ color: 'var(--muted)' }}>Koi keyword suggest nahi hua.</span>
+          <span style={{ color: 'var(--muted)' }}>No keywords suggested.</span>
         )}
       </div>
 
-      <label style={labelStyle}>Boards (kahaan dhoondhein)</label>
+      <label style={labelStyle}>Boards (where to search)</label>
       <div className="chips" style={{ marginBottom: 14 }}>
         {Object.keys(ATS_LABELS).map((a) => (
           <button
@@ -147,21 +147,21 @@ export default function DiscoverCard({ profile, onDiscovered }) {
           <input type="number" min="1" max="100" value={limit} onChange={(e) => setLimit(e.target.value)} />
         </label>
         <button className="btn-primary" disabled={busy || !selected.length} onClick={run}>
-          {busy ? 'Dhoondh raha hai…' : `Find jobs (${slugCount} boards)`}
+          {busy ? 'Searching…' : `Find jobs (${slugCount} boards)`}
         </button>
       </div>
 
       {busy && (
         <div className="empty" style={{ marginTop: 12 }}>
-          {slugCount} boards scan ho rahe hain… (polite rate-limit, thoda ruko)
+          Scanning {slugCount} boards… (polite rate-limit, hang on a moment)
         </div>
       )}
 
       {result && (
         <div className="toast ok" style={{ marginTop: 12 }}>
-          ✅ {result.cleared ? `${result.cleared} purani jobs clear · ` : ''}
-          {result.discovered} jobs mile · {result.added} naye add ·{' '}
-          {result.boardsHit} boards OK{result.boardsFailed ? `, ${result.boardsFailed} fail` : ''}
+          ✅ {result.cleared ? `${result.cleared} old jobs cleared · ` : ''}
+          {result.discovered} jobs found · {result.added} newly added ·{' '}
+          {result.boardsHit} boards OK{result.boardsFailed ? `, ${result.boardsFailed} failed` : ''}
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
-// "Hum kahan apply kar rahe hain" — discovered jobs + applications ka tracking table.
-// Har row pe "Apply" button: Puppeteer se form bharta hai (review mode — submit nahi).
+// "Where we're applying" — a tracking table of discovered jobs + applications.
+// Each row has an "Apply" button: Puppeteer fills the form (review mode — no submit).
 import { useEffect, useState } from 'react';
 import { getApplyInfo, applyToJob, screenshotUrl } from '../api/client';
 
@@ -7,7 +7,7 @@ export default function ApplicationsTable({ applications, onChanged }) {
   const [info, setInfo] = useState({ supportedATS: [], submitAllowed: false });
   const [busyId, setBusyId] = useState(null);
   const [msg, setMsg] = useState(null);
-  const [shotFor, setShotFor] = useState(null); // kis application ka screenshot dikhana hai
+  const [shotFor, setShotFor] = useState(null); // which application's screenshot to show
 
   useEffect(() => {
     getApplyInfo().then(setInfo).catch(() => {});
@@ -18,7 +18,7 @@ export default function ApplicationsTable({ applications, onChanged }) {
     setMsg(null);
     try {
       const r = await applyToJob(a.id, { submit });
-      const attach = r.resumeAttached ? '' : ' (resume attach nahi — re-upload karo)';
+      const attach = r.resumeAttached ? '' : ' (resume not attached — please re-upload)';
       setMsg({
         type: r.ok ? 'ok' : 'err',
         text: r.ok
@@ -41,10 +41,10 @@ export default function ApplicationsTable({ applications, onChanged }) {
       <h2>3 · Jobs & applications {applications?.length ? `(${applications.length})` : ''}</h2>
 
       <p style={{ color: 'var(--muted)', marginTop: -6 }}>
-        Apply = browser me form auto-bharta hai (Greenhouse · Lever).{' '}
+        Apply = auto-fills the form in the browser (Greenhouse · Lever).{' '}
         {info.submitAllowed
-          ? 'Submit ON hai — "Apply & submit" asli submit karega.'
-          : 'Review mode: form bharta hai, submit nahi (screenshot dekho). Submit on karne ke liye .env me ALLOW_SUBMIT=true.'}
+          ? 'Submit is ON — "Apply & submit" will actually submit.'
+          : 'Review mode: fills the form but does not submit (check the screenshot). To enable submit, set ALLOW_SUBMIT=true in .env.'}
       </p>
 
       {msg && <div className={`toast ${msg.type}`} style={{ marginTop: 8 }}>{msg.text}</div>}
@@ -78,9 +78,9 @@ export default function ApplicationsTable({ applications, onChanged }) {
                         className="btn-primary"
                         disabled={busyId === a.id}
                         onClick={() => apply(a, false)}
-                        title="Form bharo + screenshot (submit nahi)"
+                        title="Auto-fill form + screenshot (no submit)"
                       >
-                        {busyId === a.id ? '…' : 'Fill'}
+                        {busyId === a.id ? 'Applying…' : 'Apply'}
                       </button>
                       {info.submitAllowed && (
                         <button
@@ -88,7 +88,7 @@ export default function ApplicationsTable({ applications, onChanged }) {
                           style={{ background: '#b91c1c' }}
                           disabled={busyId === a.id}
                           onClick={() => apply(a, true)}
-                          title="Form bharo + ASLI submit"
+                          title="Fill form + REAL submit"
                         >
                           Submit
                         </button>
@@ -110,13 +110,13 @@ export default function ApplicationsTable({ applications, onChanged }) {
           </tbody>
         </table>
       ) : (
-        <div className="empty">Abhi koi job nahi. Upar "Discover" dabao ya resume upload karo.</div>
+        <div className="empty">No jobs yet. Hit "Discover" above or upload a resume.</div>
       )}
 
       {shotFor && (
         <div style={{ marginTop: 14 }}>
           <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 6 }}>
-            Bhare hue form ka screenshot (review karo):
+            Screenshot of the filled form (please review):
           </div>
           <img
             src={`${screenshotUrl(shotFor)}?t=${Date.now()}`}

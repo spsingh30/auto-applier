@@ -1,4 +1,4 @@
-// Prisma schema — SQLite for now (zero setup). Postgres + pgvector baad me scale ke liye.
+// Prisma schema — SQLite for now (zero setup). Postgres + pgvector later, for scaling.
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,8 +8,8 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-// Ek user ka canonical profile — resume se extract hua clean data.
-// Yehi puri app ka "dil" hai; sab kuch isi se padha jaata hai.
+// A user's canonical profile — clean data extracted from the resume.
+// This is the "heart" of the whole app; everything is read from here.
 model Profile {
   id        String   @id @default(cuid())
   fullName  String?
@@ -20,7 +20,7 @@ model Profile {
   github    String?
   website   String?
   summary   String?
-  skills    String?  // JSON string array (SQLite native array support nahi karta)
+  skills    String?  // JSON string array (SQLite doesn't natively support arrays)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,6 +28,16 @@ model Profile {
   educations   Education[]
   resume       ResumeDocument?
   applications Application[]
+}
+
+// The user's common application answers (work auth, sponsorship, demographics, salary…).
+// In the fill phase these authoritative answers are used instead of the AI guessing.
+// Single-row (getLatest pattern). `data` = JSON { key: answer }.
+model Preferences {
+  id        String   @id @default(cuid())
+  data      String   @default("{}")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model WorkExperience {
@@ -52,29 +62,29 @@ model Education {
   endDate   String?
 }
 
-// Original uploaded resume file ki metadata + parse status.
+// Metadata + parse status of the originally uploaded resume file.
 model ResumeDocument {
   id          String   @id @default(cuid())
   profileId   String   @unique
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   fileName    String
   fileType    String
-  storagePath String?  // disk pe saved file ka path — fill phase me ATS form pe attach karne ke liye
+  storagePath String?  // path to the file saved on disk — for attaching to the ATS form in the fill phase
   parseStatus String   @default("PENDING") // PENDING | COMPLETED | FAILED
   createdAt   DateTime @default(now())
 }
 
-// "Hum kahan apply kar rahe hain" — dashboard ka tracking part.
-// "Hum kahan apply kar rahe hain" + discovered jobs (crawler se aaye, abhi tak apply nahi).
-// profileId optional: discovery profile-independent hai; apply karte time profile se jud jaata hai.
+// "Where we're applying" — the dashboard's tracking part.
+// "Where we're applying" + discovered jobs (came from the crawler, not yet applied to).
+// profileId optional: discovery is profile-independent; it gets linked to a profile at apply time.
 model Application {
   id        String    @id @default(cuid())
   profileId String?
   profile   Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   company   String
   jobTitle  String
-  jobUrl    String?   @unique // dedup: same job dobara discover na ho
-  jobId     String?   // ATS ka apna job id (greenhouse gh_jid, lever uuid, ...)
+  jobUrl    String?   @unique // dedup: so the same job isn't discovered twice
+  jobId     String?   // the ATS's own job id (greenhouse gh_jid, lever uuid, ...)
   location  String?
   ats       String?   // greenhouse | lever | ashby | workable | smartrecruiters
   status    String    @default("PENDING") // DISCOVERED | PENDING | FILLED | SUBMITTED | FAILED
@@ -82,7 +92,7 @@ model Application {
   createdAt DateTime  @default(now())
 
   // --- Fill/apply phase (Puppeteer) ---
-  screenshotPath String?   // review ke liye bhari hui form ka screenshot
+  screenshotPath String?   // screenshot of the filled form, for review
   fillNotes      String?   // JSON: { filled:[], skipped:[], answers:{}, error? } — debugging/review
   filledAt       DateTime?
 }

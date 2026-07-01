@@ -1,11 +1,11 @@
-// Profile read endpoints — dashboard inhi se data leta hai.
+// Profile read endpoints — the dashboard gets its data from these.
 const profileModel = require('../models/profileModel');
 
 // GET /api/profile         -> latest profile (MVP single-user)
 async function getLatest(req, res, next) {
   try {
     const profile = await profileModel.getLatest();
-    if (!profile) return res.status(404).json({ error: 'Abhi koi resume upload nahi hua.' });
+    if (!profile) return res.status(404).json({ error: 'No resume has been uploaded yet.' });
     res.json({ profile });
   } catch (err) {
     next(err);
@@ -16,7 +16,7 @@ async function getLatest(req, res, next) {
 async function getById(req, res, next) {
   try {
     const profile = await profileModel.getById(req.params.id);
-    if (!profile) return res.status(404).json({ error: 'Profile nahi mila.' });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
     res.json({ profile });
   } catch (err) {
     next(err);
