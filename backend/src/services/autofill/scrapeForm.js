@@ -142,31 +142,12 @@ async function extractFileFields(frame) {
           : el.name
           ? `input[name="${CSS.escape(el.name)}"]`
           : `[data-autofill-file-idx="${i}"]`;
-        return {
-          selector: sel,
-          label: (label || '').slice(0, 160),
-          accept: (el.getAttribute('accept') || '').toLowerCase(),
-        };
+        return { selector: sel, label: (label || '').slice(0, 160) };
       });
     });
   } catch {
     return [];
   }
-}
-
-// File inputs may live in ANY frame on the page (the resume input is sometimes in a
-// different iframe than the text fields). Collect from every frame so we don't miss it.
-async function extractFileFieldsAllFrames(page) {
-  const out = [];
-  for (const frame of page.frames()) {
-    try {
-      const fields = await extractFileFields(frame);
-      for (const f of fields) out.push({ ...f, frame });
-    } catch {
-      // cross-origin / detached frame — skip
-    }
-  }
-  return out;
 }
 
 // Among all frames, return the one with the most fillable fields + its fields.
@@ -232,9 +213,8 @@ async function scrapeForm(page, jobUrl) {
     }
   }
 
-  // Also extract the Resume/CV file inputs — from ALL frames, not just the best one.
-  // (The resume input sometimes lives in a different iframe than the text fields.)
-  result.fileFields = await extractFileFieldsAllFrames(page);
+  // Also extract the Resume/CV file inputs (from the best frame).
+  result.fileFields = result.frame ? await extractFileFields(result.frame) : [];
 
   return result;
 }
