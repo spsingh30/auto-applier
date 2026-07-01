@@ -23,4 +23,14 @@ async function getById(req, res, next) {
   }
 }
 
-module.exports = { getLatest, getById };
+// PATCH /api/profile/:id  -> update editable fields
+async function update(req, res, next) {
+  try {
+    const profile = await profileModel.update(req.params.id, req.body || {});
+    res.json({ profile });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getLatest, getById, update };

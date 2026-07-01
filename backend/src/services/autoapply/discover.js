@@ -6,8 +6,6 @@ const { BOARDS } = require('./boards');
 const DELAY_MS = 350; // Lever/Workable return false 404s on bursts — be polite.
 const TIMEOUT_MS = 9000;
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 // slug -> "Nice Company" (best-effort display name).
 function prettyCompany(slug) {
   return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -80,6 +78,17 @@ async function fromSmartRecruiters(slug) {
   }));
 }
 
+// Workable sometimes returns location as a string, sometimes as an object ({ display, city, country, ... }).
+// Always return a clean string (or null) — the DB only wants a String.
+function workableLocation(j) {
+  const fromParts = [j.city, j.country].filter(Boolean).join(', ');
+  if (fromParts) return fromParts;
+  const loc = j.location;
+  if (!loc) return null;
+  if (typeof loc === 'string') return loc;
+  return loc.display || [loc.city, loc.region, loc.country].filter(Boolean).join(', ') || null;
+}
+
 async function fromWorkable(slug) {
   const b = await getJson(`https://apply.workable.com/api/v3/accounts/${slug}/jobs`, {
     method: 'POST',
@@ -139,12 +148,18 @@ async function discover(opts = {}) {
     .filter(Boolean);
   const onProgress = opts.onProgress || (() => {});
 
+  // All (ats, slug) tasks in one flat list — then CONCURRENCY workers run in parallel.
+  const tasks = [];
+  for (const ats of atsList) for (const slug of BOARDS[ats]) tasks.push({ ats, slug });
+
   const jobs = [];
   const errors = [];
   let boardsHit = 0;
+  let next = 0;
 
-  for (const ats of atsList) {
-    for (const slug of BOARDS[ats]) {
+  async function worker() {
+    while (next < tasks.length) {
+      const { ats, slug } = tasks[next++];
       try {
         let found = await FETCHERS[ats](slug);
         if (keywords.length) {
@@ -161,9 +176,10 @@ async function discover(opts = {}) {
         errors.push({ ats, slug, error: err.message });
         onProgress({ ats, slug, error: err.message });
       }
-      await sleep(DELAY_MS);
     }
   }
+
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, tasks.length) }, worker));
 
   return { jobs, boardsHit, boardsFailed: errors.length, errors };
 }

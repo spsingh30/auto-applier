@@ -31,7 +31,7 @@ async function suggestKeywords(profile) {
 }
 
 async function llmKeywords(profile, apiKey) {
-  const model = process.env.LLM_MODEL || 'google/gemini-2.0-flash-exp:free';
+  const model = process.env.KEYWORDS_MODEL || 'google/gemini-2.0-flash-exp:free';
   const titles = (profile.experiences || []).map((e) => e.title).filter(Boolean);
   const context = [
     `Skills: ${(profile.skills || []).join(', ') || '(none)'}`,

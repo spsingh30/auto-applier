@@ -28,7 +28,7 @@ async function run(req, res, next) {
       queries: Array.isArray(queries) ? queries : undefined,
     });
 
-    const { added, skipped } = await applicationModel.bulkCreateDiscovered(result.jobs);
+    const { added, skipped, removed } = await applicationModel.bulkCreateDiscovered(result.jobs);
 
     res.json({
       ok: true,
@@ -36,6 +36,7 @@ async function run(req, res, next) {
       discovered: result.jobs.length,
       added,
       skipped,
+      removed,
       boardsHit: result.boardsHit,
       boardsFailed: result.boardsFailed,
       errors: result.errors.slice(0, 20), // send only the first 20 errors

@@ -58,7 +58,10 @@ Use exactly this shape:
 }
 
 Rules:
-- If a field is missing, use null (or [] for arrays). Do not invent data.
+- Extract BOTH directly stated info AND info that is INDIRECTLY present (inferable from the text). Do not invent anything that isn't supported by the resume.
+- "location": if there is no explicit city/country at the top, INFER it from the most recent work experience or education line (e.g. an experience "HSBC Technology, Pune, India" => location "Pune, India"). Use the most recent / current one.
+- "linkedin" / "website": fill ONLY if an actual URL is present in the text (e.g. "linkedin.com/in/..."). If the resume only shows the bare word "LinkedIn" / "Portfolio" as a hyperlink label with no visible URL, use null. NEVER output the literal word "LinkedIn" as a value.
+- If a field is genuinely missing, use null (or [] for arrays).
 - Keep dates as written in the resume (e.g. "Jan 2021", "2019").
 - "summary" = the candidate's profile/objective summary if present, else null.
 - Return raw JSON only.`;
@@ -148,7 +151,9 @@ function backfillLinks(data, rawText, pdfUrls = []) {
 }
 
 async function parseWithLLM(rawText, apiKey) {
-  const model = process.env.LLM_MODEL || 'anthropic/claude-3.5-haiku';
+  // Parsing runs only once per resume — so we can use a strong (accurate) model,
+  // the cost is negligible. You can override by setting the PARSE_MODEL env var.
+  const model = process.env.PARSE_MODEL || 'anthropic/claude-3.5-sonnet';
 
   const res = await fetch(OPENROUTER_URL, {
     method: 'POST',

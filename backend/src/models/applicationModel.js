@@ -1,6 +1,22 @@
 // "Where are we applying" — DB layer for application records.
 const prisma = require('../config/prisma');
 
+// Safety net: the DB needs location as a String. If some ATS sends an object/array,
+// convert it to a clean string (or null), otherwise Prisma crashes.
+function toLocationString(loc) {
+  if (loc == null) return null;
+  if (typeof loc === 'string') return loc.trim() || null;
+  if (typeof loc === 'object') {
+    return (
+      loc.display ||
+      [loc.city, loc.region, loc.state, loc.country].filter(Boolean).join(', ') ||
+      loc.name ||
+      null
+    );
+  }
+  return String(loc);
+}
+
 async function listByProfile(profileId) {
   return prisma.application.findMany({
     where: { profileId },
@@ -40,6 +56,12 @@ function toLocationString(loc) {
 // Jobs from discovery — only insert those whose jobUrl isn't already in the DB.
 // Returns { added, skipped }.
 async function bulkCreateDiscovered(jobs) {
+  // 1) Clear out old untouched discovered results.
+  const { count: removed } = await prisma.application.deleteMany({
+    where: { status: 'DISCOVERED' },
+  });
+
+  // 2) Dedup against the remaining applied/in-progress jobs (so they aren't added again).
   const urls = jobs.map((j) => j.jobUrl).filter(Boolean);
   const existing = await prisma.application.findMany({
     where: { jobUrl: { in: urls } },
@@ -64,7 +86,7 @@ async function bulkCreateDiscovered(jobs) {
   }
 
   if (fresh.length) await prisma.application.createMany({ data: fresh });
-  return { added: fresh.length, skipped: jobs.length - fresh.length };
+  return { added: fresh.length, skipped: jobs.length - fresh.length, removed };
 }
 
 // Counts by status — for the dashboard summary.

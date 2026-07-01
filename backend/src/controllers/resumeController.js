@@ -41,6 +41,13 @@ async function uploadResume(req, res, next) {
       parseStatus: 'COMPLETED',
     });
 
+    // 4) Save the original file to disk — later attached to the autofill "Resume/CV" field.
+    try {
+      saveResumeFile(profile.id, req.file.buffer, req.file.originalname);
+    } catch (e) {
+      console.error('[resume] file disk save fail:', e.message);
+    }
+
     res.status(201).json({ profile, parsedBy: method });
   } catch (err) {
     next(err);

@@ -17,6 +17,7 @@ router.post('/resume/upload', upload.single('resume'), resumeController.uploadRe
 // Profile
 router.get('/profile', profileController.getLatest);
 router.get('/profile/:id', profileController.getById);
+router.patch('/profile/:id', profileController.update);
 
 // Applications
 router.get('/applications', applicationController.list);
@@ -37,5 +38,8 @@ router.get('/applications/:id/screenshot', applyController.screenshot);
 router.get('/discover/boards', discoverController.boards);
 router.get('/discover/keywords', discoverController.keywords);
 router.post('/discover', discoverController.run);
+
+// Auto-fill (AI + Puppeteer) — fills the form, does not submit
+router.post('/autofill', autofillController.run);
 
 module.exports = router;

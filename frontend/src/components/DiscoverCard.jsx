@@ -56,6 +56,7 @@ export default function DiscoverCard({ profile, onDiscovered }) {
     setBusy(true);
     setError(null);
     setResult(null);
+    onDiscoverStart?.(); // immediately wipe the table's old data and show "discovering"
     try {
       const r = await discoverJobs({
         ats: selected,

@@ -1,4 +1,4 @@
-# AutoResumeApply — Step 1
+# AutoResumeApply
 
 Resume upload → data extraction → profile + applications on the dashboard.
 

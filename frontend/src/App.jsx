@@ -9,6 +9,7 @@ import { getProfile, getApplications } from './api/client';
 export default function App() {
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [discovering, setDiscovering] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch fresh data from the backend.
@@ -22,6 +23,18 @@ export default function App() {
       setError(e.message);
     }
   }, []);
+
+  // When discovery starts, wipe the old data and enter the "discovering" state.
+  const onDiscoverStart = useCallback(() => {
+    setApplications([]);
+    setDiscovering(true);
+  }, []);
+
+  // Discovery finished — fetch the new jobs and exit the discovering state.
+  const onDiscovered = useCallback(async () => {
+    await refresh();
+    setDiscovering(false);
+  }, [refresh]);
 
   useEffect(() => { refresh(); }, [refresh]);
 

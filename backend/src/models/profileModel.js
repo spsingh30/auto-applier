@@ -73,4 +73,4 @@ function stripNulls(obj) {
   return out;
 }
 
-module.exports = { createFromParsed, getById, getLatest, list };
+module.exports = { createFromParsed, getById, getLatest, list, update };
