@@ -52,29 +52,55 @@ async function applyFills(frame, fills) {
   return done;
 }
 
-// Attach the actual resume to the Resume/CV file input. Prefer the input whose
-// label contains "resume/cv", otherwise the first file input. Returns true if attached.
-async function uploadResumeFile(frame, fileFields, resumePath) {
-  if (!fileFields || !fileFields.length || !resumePath) return false;
-  const pick =
-    fileFields.find((f) => /resume|cv|curriculum vitae/i.test(f.label)) || fileFields[0];
-  if (!pick) return false;
-  try {
-    const handle = await frame.$(pick.selector);
-    if (!handle) return false;
-    await handle.uploadFile(resumePath);
-    // Notify React/ATS that the file has been attached.
-    await frame.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      if (el) {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    }, pick.selector);
-    return true;
-  } catch {
+// Attach the actual resume to the Resume/CV file input. We try the candidates in
+// priority order (best label/accept match first) and stop at the first one that
+// accepts the file. Each fileField carries its own .frame (see scrapeForm).
+// Returns true if attached.
+async function uploadResumeFile(fileFields, resumePath) {
+  if (!resumePath) {
+    console.warn('[autofill] resume not attached: no saved resume file on disk');
     return false;
   }
+  if (!fileFields || !fileFields.length) {
+    console.warn('[autofill] resume not attached: no <input type="file"> found on the page');
+    return false;
+  }
+
+  // Rank candidates: explicit resume/cv label wins; then accept= contains pdf/doc; then label hints.
+  const score = (f) => {
+    const lbl = (f.label || '').toLowerCase();
+    const acc = (f.accept || '').toLowerCase();
+    let s = 0;
+    if (/resume|cv|curriculum vitae|biodata/.test(lbl)) s += 100;
+    if (/cover\s*letter|portfolio|transcript|photo|picture|avatar/.test(lbl)) s -= 50;
+    if (/\.pdf|application\/pdf/.test(acc)) s += 10;
+    if (/\.docx?|msword|wordprocessingml/.test(acc)) s += 5;
+    return s;
+  };
+  const ranked = [...fileFields].sort((a, b) => score(b) - score(a));
+
+  for (const pick of ranked) {
+    try {
+      const frame = pick.frame;
+      if (!frame) continue;
+      const handle = await frame.$(pick.selector);
+      if (!handle) continue;
+      await handle.uploadFile(resumePath);
+      // Notify React/ATS that the file has been attached.
+      await frame.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        if (el) {
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, pick.selector);
+      console.log(`[autofill] resume attached -> ${pick.selector} (label="${pick.label}")`);
+      return true;
+    } catch (e) {
+      console.warn(`[autofill] resume attach failed for ${pick.selector}: ${e.message}`);
+    }
+  }
+  return false;
 }
 
 /**
@@ -105,7 +131,7 @@ async function autofillJob(jobUrl, profile) {
     const filled = await applyFills(frame, fills);
 
     // Attach the actual resume to the Resume/CV file input (if the form asks for it and a file is saved).
-    const resumeUploaded = await uploadResumeFile(frame, fileFields, getResumePath(profile));
+    const resumeUploaded = await uploadResumeFile(fileFields, getResumePath(profile));
 
     // Capture the full page — the form is often below the fold (in an iframe).
     const screenshot = await page.screenshot({ encoding: 'base64', fullPage: true }).catch(
