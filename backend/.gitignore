@@ -5,3 +5,4 @@ prisma/dev.db-journal
 
 # uploaded resume files (kept on disk for autofill)
 uploads/
+screenshots/

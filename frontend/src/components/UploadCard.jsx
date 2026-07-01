@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { uploadResume } from '../api/client';
 
-// Resume upload — drag-drop or click. Once uploaded, it notifies the parent via onUploaded().
+// Resume upload — drag-drop or click. As soon as upload finishes, onUploaded() notifies the parent.
 export default function UploadCard({ onUploaded }) {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);

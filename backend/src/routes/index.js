@@ -1,4 +1,4 @@
-// All routes mounted in one place.
+// Mount all routes in one place.
 const express = require('express');
 const upload = require('../middleware/upload');
 
@@ -6,7 +6,8 @@ const resumeController = require('../controllers/resumeController');
 const profileController = require('../controllers/profileController');
 const applicationController = require('../controllers/applicationController');
 const discoverController = require('../controllers/discoverController');
-const autofillController = require('../controllers/autofillController');
+const applyController = require('../controllers/applyController');
+const preferencesController = require('../controllers/preferencesController');
 
 const router = express.Router();
 
@@ -21,7 +22,17 @@ router.patch('/profile/:id', profileController.update);
 // Applications
 router.get('/applications', applicationController.list);
 router.post('/applications', applicationController.create);
+router.delete('/applications', discoverController.clearAll); // clear all jobs
 router.patch('/applications/:id/status', applicationController.updateStatus);
+
+// Preferences (common application answers — questionnaire)
+router.get('/preferences', preferencesController.get);
+router.put('/preferences', preferencesController.save);
+
+// Apply / fill (Puppeteer) — fill the form on a discovered job (default review mode, no submit)
+router.get('/apply/info', applyController.info);
+router.post('/applications/:id/apply', applyController.apply);
+router.get('/applications/:id/screenshot', applyController.screenshot);
 
 // Discovery (crawler — open jobs from verified ATS boards)
 router.get('/discover/boards', discoverController.boards);

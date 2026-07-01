@@ -3,6 +3,7 @@ import UploadCard from './components/UploadCard';
 import ProfileCard from './components/ProfileCard';
 import ApplicationsTable from './components/ApplicationsTable';
 import DiscoverCard from './components/DiscoverCard';
+import PreferencesCard from './components/PreferencesCard';
 import { getProfile, getApplications } from './api/client';
 
 export default function App() {
@@ -11,7 +12,7 @@ export default function App() {
   const [discovering, setDiscovering] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch the latest data from the backend.
+  // Fetch fresh data from the backend.
   const refresh = useCallback(async () => {
     try {
       const [p, apps] = await Promise.all([getProfile(), getApplications()]);
@@ -41,15 +42,16 @@ export default function App() {
     <div className="app">
       <header>
         <h1>AutoResumeApply</h1>
-        <p>Upload your resume → we extract your data → the dashboard shows where you're applying.</p>
+        <p>Upload your resume → data gets extracted → the dashboard shows where applications are being sent.</p>
       </header>
 
       {error && <div className="toast err">{error}</div>}
 
       <UploadCard onUploaded={refresh} />
-      <ProfileCard profile={profile} onSaved={refresh} />
-      <DiscoverCard profile={profile} onDiscoverStart={onDiscoverStart} onDiscovered={onDiscovered} />
-      <ApplicationsTable applications={applications} discovering={discovering} />
+      <ProfileCard profile={profile} />
+      <PreferencesCard />
+      <DiscoverCard profile={profile} onDiscovered={refresh} />
+      <ApplicationsTable applications={applications} onChanged={refresh} />
     </div>
   );
 }

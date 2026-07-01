@@ -1,6 +1,6 @@
 # AutoResumeApply
 
-Upload a resume → extract structured data → discover open jobs → let AI auto-fill the application forms.
+Resume upload → data extraction → profile + applications on the dashboard.
 
 ## Architecture (MVC)
 
@@ -10,7 +10,7 @@ backend/  (Node + Express, MVC)
     routes/        → which URL goes to which controller
     controllers/   → handle requests (C)
     models/        → Prisma DB access (M)
-    services/      → resume text extraction + LLM parse + discovery + autofill (business logic)
+    services/      → resume text extraction + LLM parse (business logic)
     middleware/    → file upload (multer), error handling
     config/        → prisma client
   prisma/schema.prisma → DB tables (SQLite)
@@ -18,20 +18,18 @@ backend/  (Node + Express, MVC)
 frontend/ (React + Vite)
   src/
     api/client.js  → backend API calls
-    components/     → UploadCard, ProfileCard, DiscoverCard, ApplicationsTable
+    components/     → UploadCard, ProfileCard, ApplicationsTable
     App.jsx         → dashboard (V)
 ```
 
 ### Flow
-1. React `UploadCard` POSTs the file to the backend at `/api/resume/upload`.
-2. `fileExtractor` pulls raw text out of the PDF/DOCX.
-3. `resumeParser` turns that text into structured JSON (LLM if an API key is set, otherwise a heuristic fallback). It also stores the original file on disk for later attachment.
-4. `profileModel` saves it to the DB via Prisma.
-5. The React dashboard reads data from `/api/profile` and `/api/applications`.
-6. `DiscoverCard` finds open jobs from verified ATS boards and adds them to the table.
-7. From the table, the AI auto-fills a job's form (and attaches the resume) — it does **not** submit.
+1. React `UploadCard` → POSTs the file to the backend at `/api/resume/upload`
+2. `fileExtractor` extracts text from the PDF/DOCX
+3. `resumeParser` turns text → structured JSON (LLM if an API key is present, otherwise heuristic)
+4. `profileModel` → saves to the DB via Prisma
+5. The React dashboard displays data from `/api/profile` + `/api/applications`
 
-## Running it
+## How to run
 
 ### Backend
 ```bash
@@ -40,14 +38,7 @@ npm install
 npx prisma db push      # creates the SQLite DB
 npm run dev             # http://localhost:4000
 ```
-
-To enable LLM features, create `backend/.env` (copy from `.env.example`) and set:
-```
-OPENROUTER_API_KEY=...                         # https://openrouter.ai/keys
-PARSE_MODEL=anthropic/claude-3.5-sonnet        # accurate; runs once per resume
-FILL_MODEL=google/gemini-2.0-flash-001         # cheap; runs per job
-```
-Without a key the app still runs, just with a lower-accuracy heuristic fallback.
+To enable LLM parsing: add `OPENROUTER_API_KEY=...` to `.env` (copy from `.env.example`). Get a key here: https://openrouter.ai/keys
 
 ### Frontend
 ```bash
@@ -56,25 +47,36 @@ npm install
 npm run dev             # http://localhost:5173
 ```
 
-Open **http://localhost:5173** in your browser and upload a resume.
+Open **http://localhost:5173** in your browser → upload a resume.
 
-> Note: there is no dummy/seed data. Jobs appear in the table via the **Discover** button (pulled from real ATS boards).
+> Note: there is no longer any dummy/seed data. Jobs appear in the table via the **Discover** button (from real ATS boards).
 
 ## API endpoints
 | Method | Path | Purpose |
-|--------|------|------|
-| POST | `/api/resume/upload` | upload + parse a resume (field: `resume`) |
+|--------|------|--------|
+| POST | `/api/resume/upload` | resume upload + parse (field: `resume`) |
 | GET  | `/api/profile` | latest extracted profile |
-| PATCH| `/api/profile/:id` | edit the profile |
 | GET  | `/api/applications` | all applications |
 | POST | `/api/applications` | add a new application |
-| PATCH| `/api/applications/:id/status` | update status |
-| GET  | `/api/discover/boards` | available ATS boards |
-| GET  | `/api/discover/keywords` | suggested job keywords from the resume |
-| POST | `/api/discover` | discover open jobs from ATS boards |
-| POST | `/api/autofill` | AI fills a job form (does not submit) |
+| PATCH| `/api/applications/:id/status` | status update |
+| POST | `/api/discover` | discover jobs from ATS boards |
+| POST | `/api/applications/:id/apply` | **auto-fill** the form (Puppeteer); body `{submit?}` |
+| GET  | `/api/applications/:id/screenshot` | screenshot of the filled form |
+| GET  | `/api/apply/info` | supported ATS + submit on/off |
 
-## Next steps
-- **Submit** the application (currently it only fills + screenshots).
-- Browser **extension** for real autofill in the user's own browser.
-- Auth (multi-user).
+## Auto-apply (Fill phase — Puppeteer)
+
+Click **Fill** in the table on a discovered job → the backend opens a browser, fills the ATS form
+(name/email/phone), **attaches the resume**, and drafts answers to **screening questions**
+using the LLM. Then it takes a **screenshot** and sets the status to `FILLED`.
+
+- Chromium downloads automatically as soon as `puppeteer` is installed (no separate setup).
+- **Default = review mode**: it fills the form but does **not** submit — you review the screenshot.
+- **A real submit** sits behind two gates (so nothing is spammed by accident): UI/API `submit:true` **AND** `ALLOW_SUBMIT=true` in `.env`.
+- To see the browser, set `PUPPETEER_HEADLESS=false` in `.env` (default); for background use, set it to `true`.
+- Currently supported ATS: **Greenhouse, Lever** (Ashby/Workable/SmartRecruiters = coming).
+
+## What's next (next steps)
+- Fill adapters for the remaining ATS (Ashby/Workable/SmartRecruiters)
+- Select/radio/checkbox screening questions (currently text only)
+- Profile **edit** feature; custom career pages (Workday); Auth (multi-user)

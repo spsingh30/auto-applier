@@ -1,4 +1,4 @@
-// Applications — the dashboard's "where we're applying" section.
+// Applications — the dashboard's "where are we applying" section.
 const applicationModel = require('../models/applicationModel');
 const profileModel = require('../models/profileModel');
 
@@ -12,7 +12,7 @@ async function list(req, res, next) {
   }
 }
 
-// POST /api/applications  -> add a new application (manual for now; later done by the extension/crawler)
+// POST /api/applications  -> add a new application (manual for now; extension/crawler will do it later)
 async function create(req, res, next) {
   try {
     let { profileId, company, jobTitle, jobUrl, ats, status } = req.body;
@@ -21,10 +21,10 @@ async function create(req, res, next) {
       return res.status(400).json({ error: 'company and jobTitle are required.' });
     }
 
-    // If no profileId is provided, attach to the latest profile.
+    // If no profileId is provided, attach it to the latest profile.
     if (!profileId) {
       const latest = await profileModel.getLatest();
-      if (!latest) return res.status(400).json({ error: 'Upload a resume first.' });
+      if (!latest) return res.status(400).json({ error: 'Please upload a resume first.' });
       profileId = latest.id;
     }
 

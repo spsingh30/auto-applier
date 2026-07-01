@@ -1,39 +1,5 @@
-// Displays the extracted profile — and lets the user edit/correct it (in case the parser gets something wrong).
-import { useState, useEffect } from 'react';
-import { updateProfile } from '../api/client';
-
-const FIELDS = [
-  ['fullName', 'Full name'],
-  ['email', 'Email'],
-  ['phone', 'Phone'],
-  ['location', 'Location'],
-  ['linkedin', 'LinkedIn'],
-  ['website', 'Website'],
-];
-
-export default function ProfileCard({ profile, onSaved }) {
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState(null);
-  const [skillInput, setSkillInput] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-
-  // When entering edit mode, copy the current profile into the form.
-  useEffect(() => {
-    if (editing && profile) {
-      setForm({
-        fullName: profile.fullName || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        location: profile.location || '',
-        linkedin: profile.linkedin || '',
-        website: profile.website || '',
-        summary: profile.summary || '',
-        skills: [...(profile.skills || [])],
-      });
-    }
-  }, [editing, profile]);
-
+// Shows the extracted profile data — name, contact, skills, experience, education.
+export default function ProfileCard({ profile }) {
   if (!profile) {
     return (
       <div className="card">
@@ -171,7 +137,7 @@ export default function ProfileCard({ profile, onSaved }) {
             <div className="meta">{[e.startDate, e.endDate].filter(Boolean).join(' – ')}</div>
             {e.description && <div className="desc">{e.description}</div>}
           </div>
-        )) : <span style={{ color: 'var(--muted)' }}>No experience detected (available in AI mode)</span>}
+        )) : <span style={{ color: 'var(--muted)' }}>No experience detected (will appear in AI mode)</span>}
       </div>
 
       <div style={{ marginTop: 22 }}>

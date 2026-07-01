@@ -1,4 +1,4 @@
-// All the functions for talking to the backend in one place.
+// All the functions for talking to the backend, in one place.
 const BASE = '/api';
 
 export async function uploadResume(file) {
@@ -16,46 +16,31 @@ export async function getProfile() {
   return (await res.json()).profile;
 }
 
-// Save profile edits. data: { fullName, email, ..., skills: string[] }
-export async function updateProfile(id, data) {
-  const res = await fetch(`${BASE}/profile/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to save profile');
-  return (await res.json()).profile;
-}
-
 export async function getApplications() {
   const res = await fetch(`${BASE}/applications`);
   if (!res.ok) throw new Error('Failed to load applications');
   return (await res.json()).applications;
 }
 
-// Summary of the available ATS boards.
+// Clear all jobs (clean slate). Returns { cleared }.
+export async function clearApplications() {
+  const res = await fetch(`${BASE}/applications`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to clear jobs');
+  return res.json();
+}
+
+// Summary of available ATS boards.
 export async function getBoards() {
   const res = await fetch(`${BASE}/discover/boards`);
   if (!res.ok) throw new Error('Failed to load boards');
   return res.json();
 }
 
-// Latest resume se suggested job keywords.
+// Suggested job keywords from the latest resume.
 export async function getKeywords() {
   const res = await fetch(`${BASE}/discover/keywords`);
   if (!res.ok) throw new Error('Failed to load keywords');
   return (await res.json()).keywords;
-}
-
-// Auto-fill a job form using AI + Puppeteer (no submit). Returns { filled, screenshot, fieldCount }.
-export async function autofillJob(jobUrl) {
-  const res = await fetch(`${BASE}/autofill`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jobUrl }),
-  });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Auto-fill failed');
-  return res.json();
 }
 
 // Start discovery. opts: { ats: string[], limitPerBoard, query }
@@ -67,4 +52,44 @@ export async function discoverJobs(opts = {}) {
   });
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Discovery failed');
   return res.json();
+}
+
+// Preferences (common application answers) — questions + saved answers.
+export async function getPreferences() {
+  const res = await fetch(`${BASE}/preferences`);
+  if (!res.ok) throw new Error('Failed to load preferences');
+  return res.json(); // { questions, answers }
+}
+
+export async function savePreferences(answers) {
+  const res = await fetch(`${BASE}/preferences`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers }),
+  });
+  if (!res.ok) throw new Error('Failed to save preferences');
+  return (await res.json()).answers;
+}
+
+// Apply phase info: which ATS are supported + submit on/off.
+export async function getApplyInfo() {
+  const res = await fetch(`${BASE}/apply/info`);
+  if (!res.ok) throw new Error('Failed to load apply info');
+  return res.json();
+}
+
+// Fill the apply form for one job (Puppeteer). submit:true actually submits (also needs env ALLOW_SUBMIT).
+export async function applyToJob(id, { submit = false } = {}) {
+  const res = await fetch(`${BASE}/applications/${id}/apply`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ submit }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Apply failed');
+  return res.json();
+}
+
+// URL of the filled form's screenshot (for review).
+export function screenshotUrl(id) {
+  return `${BASE}/applications/${id}/screenshot`;
 }

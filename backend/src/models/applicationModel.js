@@ -1,4 +1,4 @@
-// "Where we're applying" — the DB layer for Application records.
+// "Where are we applying" — DB layer for application records.
 const prisma = require('../config/prisma');
 
 // Safety net: the DB needs location as a String. If some ATS sends an object/array,
@@ -28,14 +28,33 @@ async function listAll() {
   return prisma.application.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
+async function getById(id) {
+  return prisma.application.findUnique({ where: { id } });
+}
+
+// Delete all applications (clean slate before a fresh discover).
+// Returns { count } — how many rows were deleted.
+async function deleteAll() {
+  const { count } = await prisma.application.deleteMany({});
+  return { count };
+}
+
 async function create(data) {
   return prisma.application.create({ data });
 }
 
-// Jobs from discovery — each new search should only show fresh results.
-// So we first remove old DISCOVERED jobs (the ones the user didn't act on);
-// applied/in-progress jobs (SUBMITTED/FILLED/PENDING/FAILED) are kept.
-// Returns { added, skipped, removed }.
+// Always coerce location to string|null — so the insert won't break even if an ATS returns an object/array.
+function toLocationString(loc) {
+  if (loc == null) return null;
+  if (typeof loc === 'string') return loc.trim() || null;
+  if (typeof loc === 'object') {
+    return loc.display || [loc.city, loc.region, loc.country].filter(Boolean).join(', ') || null;
+  }
+  return String(loc);
+}
+
+// Jobs from discovery — only insert those whose jobUrl isn't already in the DB.
+// Returns { added, skipped }.
 async function bulkCreateDiscovered(jobs) {
   // 1) Clear out old untouched discovered results.
   const { count: removed } = await prisma.application.deleteMany({
@@ -50,7 +69,7 @@ async function bulkCreateDiscovered(jobs) {
   });
   const seen = new Set(existing.map((e) => e.jobUrl));
 
-  // The same batch may also contain duplicate jobUrls — dedup.
+  // The same batch can also contain a duplicate jobUrl — dedup.
   const fresh = [];
   for (const j of jobs) {
     if (!j.jobUrl || seen.has(j.jobUrl)) continue;
@@ -60,7 +79,7 @@ async function bulkCreateDiscovered(jobs) {
       jobTitle: j.jobTitle || 'Untitled',
       jobUrl: j.jobUrl,
       jobId: j.jobId || null,
-      location: toLocationString(j.location),
+      location: toLocationString(j.location), // never pass an object (SQLite/Prisma expects a string)
       ats: j.ats || null,
       status: 'DISCOVERED',
     });
@@ -82,4 +101,20 @@ async function updateStatus(id, status) {
   return prisma.application.update({ where: { id }, data: patch });
 }
 
-module.exports = { listByProfile, listAll, create, updateStatus, bulkCreateDiscovered, countsByStatus };
+// Save the result of the fill/apply phase (status + screenshot + notes/answers).
+async function saveFillResult(id, { status, screenshotPath, notes, answers, profileId }) {
+  const patch = {
+    status,
+    filledAt: new Date(),
+    screenshotPath: screenshotPath || null,
+    fillNotes: JSON.stringify({ notes: notes || [], answers: answers || [] }),
+  };
+  if (status === 'SUBMITTED') patch.appliedAt = new Date();
+  if (profileId) patch.profileId = profileId; // link to the profile at apply time
+  return prisma.application.update({ where: { id }, data: patch });
+}
+
+module.exports = {
+  listByProfile, listAll, getById, create, updateStatus,
+  bulkCreateDiscovered, countsByStatus, saveFillResult, deleteAll,
+};

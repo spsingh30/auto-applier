@@ -1,4 +1,4 @@
-// Prisma schema — SQLite for now (zero setup). Postgres + pgvector later for scale.
+// Prisma schema — SQLite for now (zero setup). Postgres + pgvector later, for scaling.
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,9 +17,10 @@ model Profile {
   phone     String?
   location  String?
   linkedin  String?
+  github    String?
   website   String?
   summary   String?
-  skills    String?  // JSON string array (SQLite doesn't support native arrays)
+  skills    String?  // JSON string array (SQLite doesn't natively support arrays)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -27,6 +28,16 @@ model Profile {
   educations   Education[]
   resume       ResumeDocument?
   applications Application[]
+}
+
+// The user's common application answers (work auth, sponsorship, demographics, salary…).
+// In the fill phase these authoritative answers are used instead of the AI guessing.
+// Single-row (getLatest pattern). `data` = JSON { key: answer }.
+model Preferences {
+  id        String   @id @default(cuid())
+  data      String   @default("{}")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model WorkExperience {
@@ -51,19 +62,20 @@ model Education {
   endDate   String?
 }
 
-// Metadata + parse status of the original uploaded resume file.
+// Metadata + parse status of the originally uploaded resume file.
 model ResumeDocument {
   id          String   @id @default(cuid())
   profileId   String   @unique
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   fileName    String
   fileType    String
+  storagePath String?  // path to the file saved on disk — for attaching to the ATS form in the fill phase
   parseStatus String   @default("PENDING") // PENDING | COMPLETED | FAILED
   createdAt   DateTime @default(now())
 }
 
 // "Where we're applying" — the dashboard's tracking part.
-// "Where we're applying" + discovered jobs (from the crawler, not yet applied to).
+// "Where we're applying" + discovered jobs (came from the crawler, not yet applied to).
 // profileId optional: discovery is profile-independent; it gets linked to a profile at apply time.
 model Application {
   id        String    @id @default(cuid())
@@ -71,11 +83,16 @@ model Application {
   profile   Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   company   String
   jobTitle  String
-  jobUrl    String?   @unique // dedup: avoid discovering the same job twice
+  jobUrl    String?   @unique // dedup: so the same job isn't discovered twice
   jobId     String?   // the ATS's own job id (greenhouse gh_jid, lever uuid, ...)
   location  String?
   ats       String?   // greenhouse | lever | ashby | workable | smartrecruiters
   status    String    @default("PENDING") // DISCOVERED | PENDING | FILLED | SUBMITTED | FAILED
   appliedAt DateTime?
   createdAt DateTime  @default(now())
+
+  // --- Fill/apply phase (Puppeteer) ---
+  screenshotPath String?   // screenshot of the filled form, for review
+  fillNotes      String?   // JSON: { filled:[], skipped:[], answers:{}, error? } — debugging/review
+  filledAt       DateTime?
 }

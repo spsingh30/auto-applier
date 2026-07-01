@@ -1,34 +1,55 @@
-// "Where we're applying" — discovered jobs + AI auto-fill (Puppeteer).
-import { useState } from 'react';
-import { autofillJob } from '../api/client';
+// "Where we're applying" — a tracking table of discovered jobs + applications.
+// Each row has an "Apply" button: Puppeteer fills the form (review mode — no submit).
+import { useEffect, useState } from 'react';
+import { getApplyInfo, applyToJob, screenshotUrl } from '../api/client';
 
-export default function ApplicationsTable({ applications, discovering }) {
+export default function ApplicationsTable({ applications, onChanged }) {
+  const [info, setInfo] = useState({ supportedATS: [], submitAllowed: false });
   const [busyId, setBusyId] = useState(null);
-  const [result, setResult] = useState(null); // { job, data } — to display in the modal
-  const [error, setError] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [shotFor, setShotFor] = useState(null); // which application's screenshot to show
 
-  async function fill(job) {
-    setBusyId(job.id);
-    setError(null);
+  useEffect(() => {
+    getApplyInfo().then(setInfo).catch(() => {});
+  }, []);
+
+  async function apply(a, submit) {
+    setBusyId(a.id);
+    setMsg(null);
     try {
-      const data = await autofillJob(job.jobUrl);
-      setResult({ job, data });
+      const r = await applyToJob(a.id, { submit });
+      const attach = r.resumeAttached ? '' : ' (resume not attached — please re-upload)';
+      setMsg({
+        type: r.ok ? 'ok' : 'err',
+        text: r.ok
+          ? `✅ ${a.company}: ${r.application.status}${r.submitted ? ' — SUBMITTED' : ' — review ready'}${attach}`
+          : `❌ ${a.company}: fail — ${(r.notes || []).slice(-1)[0] || 'unknown'}`,
+      });
+      if (r.screenshotUrl) setShotFor(a.id);
+      onChanged?.();
     } catch (e) {
-      setError(`${job.company}: ${e.message}`);
+      setMsg({ type: 'err', text: `❌ ${a.company}: ${e.message}` });
     } finally {
       setBusyId(null);
     }
   }
 
+  const canApply = (a) => info.supportedATS.includes((a.ats || '').toLowerCase()) && a.jobUrl;
+
   return (
     <div className="card">
       <h2>3 · Jobs & applications {applications?.length ? `(${applications.length})` : ''}</h2>
 
-      {error && <div className="toast err">{error}</div>}
+      <p style={{ color: 'var(--muted)', marginTop: -6 }}>
+        Apply = auto-fills the form in the browser (Greenhouse · Lever).{' '}
+        {info.submitAllowed
+          ? 'Submit is ON — "Apply & submit" will actually submit.'
+          : 'Review mode: fills the form but does not submit (check the screenshot). To enable submit, set ALLOW_SUBMIT=true in .env.'}
+      </p>
 
-      {discovering ? (
-        <div className="empty">⏳ Discovering the jobs… (new results coming in)</div>
-      ) : applications?.length ? (
+      {msg && <div className={`toast ${msg.type}`} style={{ marginTop: 8 }}>{msg.text}</div>}
+
+      {applications?.length ? (
         <table>
           <thead>
             <tr>
@@ -38,7 +59,7 @@ export default function ApplicationsTable({ applications, discovering }) {
               <th>ATS</th>
               <th>Status</th>
               <th>Link</th>
-              <th>AI Fill</th>
+              <th>Apply</th>
             </tr>
           </thead>
           <tbody>
@@ -51,21 +72,58 @@ export default function ApplicationsTable({ applications, discovering }) {
                 <td><span className={`status ${a.status}`}>{a.status}</span></td>
                 <td>{a.jobUrl ? <a href={a.jobUrl} target="_blank" rel="noreferrer">open ↗</a> : '—'}</td>
                 <td>
-                  <button
-                    className="btn-ghost"
-                    style={{ padding: '5px 10px', fontSize: 13 }}
-                    disabled={!a.jobUrl || busyId === a.id}
-                    onClick={() => fill(a)}
-                  >
-                    {busyId === a.id ? 'Filling…' : '🤖 Fill'}
-                  </button>
+                  {canApply(a) ? (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <button
+                        className="btn-primary"
+                        disabled={busyId === a.id}
+                        onClick={() => apply(a, false)}
+                        title="Auto-fill form + screenshot (no submit)"
+                      >
+                        {busyId === a.id ? 'Applying…' : 'Apply'}
+                      </button>
+                      {info.submitAllowed && (
+                        <button
+                          className="btn-primary"
+                          style={{ background: '#b91c1c' }}
+                          disabled={busyId === a.id}
+                          onClick={() => apply(a, true)}
+                          title="Fill form + REAL submit"
+                        >
+                          Submit
+                        </button>
+                      )}
+                      {a.screenshotPath && (
+                        <button className="chip" onClick={() => setShotFor(shotFor === a.id ? null : a.id)}>
+                          {shotFor === a.id ? 'hide' : 'view'}
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <span style={{ color: 'var(--muted)', fontSize: 12 }}>
+                      {a.ats ? `${a.ats} soon` : '—'}
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       ) : (
-        <div className="empty">No jobs yet. Click "Find jobs" above or upload a resume.</div>
+        <div className="empty">No jobs yet. Hit "Discover" above or upload a resume.</div>
+      )}
+
+      {shotFor && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 6 }}>
+            Screenshot of the filled form (please review):
+          </div>
+          <img
+            src={`${screenshotUrl(shotFor)}?t=${Date.now()}`}
+            alt="filled form"
+            style={{ maxWidth: '100%', border: '1px solid var(--border, #333)', borderRadius: 8 }}
+          />
+        </div>
       )}
 
       {result && <FillResult result={result} onClose={() => setResult(null)} />}

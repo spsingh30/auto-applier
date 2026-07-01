@@ -1,6 +1,6 @@
-// Resume profile -> suggests job-search keywords.
-// First it tries the LLM (OpenRouter, a cheap free model); if unavailable or it fails,
-// it builds heuristic keywords from skills + experience titles.
+// Suggests job-search keywords from a resume profile.
+// First tries the LLM (OpenRouter, a cheap free model); if unavailable/failing,
+// builds heuristic keywords from skills + experience titles.
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You suggest job-search keywords for a candidate based on their resume.
@@ -23,7 +23,7 @@ async function suggestKeywords(profile) {
       const llm = await llmKeywords(profile, apiKey);
       if (llm.length) return dedupe(llm);
     } catch (err) {
-      console.error('[keywords] LLM failed, falling back to heuristics:', err.message);
+      console.error('[keywords] LLM failed, falling back to heuristic:', err.message);
     }
   }
 
@@ -66,11 +66,11 @@ async function llmKeywords(profile, apiKey) {
   return arr.filter((k) => typeof k === 'string' && k.trim()).map((k) => k.trim());
 }
 
-// The LLM sometimes wraps output in a ```json fence — clean it up and parse.
+// The LLM sometimes adds a ```json fence — strip it and parse.
 function extractJson(text) {
   const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   const start = cleaned.search(/[[{]/);
-  if (start === -1) throw new Error('No JSON found');
+  if (start === -1) throw new Error('JSON not found');
   return JSON.parse(cleaned.slice(start));
 }
 

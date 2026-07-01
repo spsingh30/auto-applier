@@ -1,9 +1,9 @@
 // Discovery layer — hits each ATS's public (no-auth) JSON API to pull open jobs.
-// No browser/Puppeteer here — APIs only. Fill/submit is a later phase.
+// No Browser/Puppeteer here — APIs only. Fill/submit is a later phase.
 // Output: normalized job objects { company, jobTitle, jobUrl, jobId, location, ats }.
 const { BOARDS } = require('./boards');
 
-const CONCURRENCY = 6; // scan this many boards at once — 6x faster, but still polite enough.
+const DELAY_MS = 350; // Lever/Workable return false 404s on bursts — be polite.
 const TIMEOUT_MS = 9000;
 
 // slug -> "Nice Company" (best-effort display name).
@@ -100,9 +100,25 @@ async function fromWorkable(slug) {
     jobTitle: j.title,
     jobUrl: j.url || `https://apply.workable.com/${slug}/j/${j.shortcode}/`,
     jobId: j.shortcode || j.id || null,
+    // In Workable v3, `location` is a nested object ({display, city, region, country}),
+    // not top-level j.city/j.country. Convert the object to a string (otherwise Prisma throws a 500).
     location: workableLocation(j),
     ats: 'workable',
   }));
+}
+
+// Normalize the Workable location to a string (handles string/object/empty).
+function workableLocation(j) {
+  const loc = j.location;
+  if (typeof loc === 'string') return loc.trim() || null;
+  if (loc && typeof loc === 'object') {
+    return (
+      loc.display ||
+      [loc.city, loc.region, loc.country].filter(Boolean).join(', ') ||
+      null
+    );
+  }
+  return [j.city, j.country].filter(Boolean).join(', ') || null;
 }
 
 const FETCHERS = {
@@ -126,7 +142,7 @@ const FETCHERS = {
 async function discover(opts = {}) {
   const atsList = (opts.ats && opts.ats.length ? opts.ats : Object.keys(BOARDS)).filter((a) => FETCHERS[a]);
   const limitPerBoard = opts.limitPerBoard ?? 15;
-  // Combine queries[] (multi) + query (single) into a single lowercase keyword list.
+  // Merge queries[] (multi) + query (single) into a single lowercase keyword list.
   const keywords = [...(opts.queries || []), opts.query]
     .map((k) => (k || '').trim().toLowerCase())
     .filter(Boolean);

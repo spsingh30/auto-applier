@@ -1,5 +1,6 @@
-// Multer — takes the file into memory as a buffer (does not save to disk).
-// The buffer is passed straight to the text extractor.
+// Multer — takes the file into memory as a buffer.
+// The buffer goes to the text extractor; the controller also saves it to disk in uploads/
+// so that the fill phase (Puppeteer) can attach that file to the ATS form.
 const multer = require('multer');
 
 const ALLOWED = new Set([
